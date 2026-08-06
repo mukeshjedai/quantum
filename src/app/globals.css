@@ -1,0 +1,130 @@
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+  --muted: #334155;
+  --err: #b91c1c;
+  --card-border: #e2e8f0;
+  --input-border: #cbd5e1;
+  --wiki-sidebar-width: 260px;
+  --site-nav-height: 49px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.wrap--narrow {
+  max-width: 640px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin: 0.8rem 0;
+  border: 1px solid var(--card-border);
+}
+
+.card label,
+label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  background: #ffffff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+
+button,
+.btn {
+  margin-top: 0.55rem;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+  background: #000000;
+  color: #ffffff;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.err {
+  color: var(--err);
+}
+
+.row {
+  margin-bottom: 1rem;
+}
+
+.lead {
+  color: var(--muted);
+  margin: 0 0 1.5rem;
+  line-height: 1.55;
+}
+
+body.wiki-with-sidebar .wrap {
+  margin-left: var(--wiki-sidebar-width);
+  max-width: min(980px, calc(100vw - var(--wiki-sidebar-width) - 2rem));
+}
+
+@media (max-width: 720px) {
+  body.wiki-with-sidebar .wrap {
+    margin-left: 220px;
+    max-width: calc(100vw - 220px - 1rem);
+  }
+}

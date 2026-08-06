@@ -1,0 +1,50 @@
+.status {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 0.9rem;
+}
+
+.err {
+  color: var(--err);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+}
+
+.detail {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+.bar {
+  height: 6px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  background: #000000;
+  transition: width 0.12s linear;
+}
+
+.pct {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.links {
+  margin-top: 0.75rem;
+}
+
+.links a {
+  margin-right: 1rem;
+}

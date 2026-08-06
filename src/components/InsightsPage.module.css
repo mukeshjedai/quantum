@@ -1,0 +1,41 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.2rem;
+  line-height: 1.45;
+}
+
+.concept {
+  margin-bottom: 0.65rem;
+}
+
+.concept b {
+  color: #000000;
+}
+
+.transcript {
+  white-space: pre-wrap;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  max-height: 420px;
+  overflow: auto;
+  border-radius: 8px;
+  padding: 0.8rem;
+  background: #ffffff;
+}
+
+@media (max-width: 840px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

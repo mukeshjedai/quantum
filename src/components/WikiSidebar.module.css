@@ -1,0 +1,201 @@
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: var(--site-nav-height);
+  z-index: 40;
+  width: var(--wiki-sidebar-width);
+  height: calc(100vh - var(--site-nav-height));
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  font-size: 0.88rem;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.body {
+  flex: 1;
+  overflow: auto;
+  padding: 0.5rem 0.35rem 1rem;
+}
+
+.empty {
+  margin: 0.75rem;
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.err {
+  margin: 0.75rem;
+  font-size: 0.82rem;
+  color: #b91c1c;
+}
+
+.tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tree .tree {
+  padding-left: 0.85rem;
+  margin-left: 0.55rem;
+  border-left: 1px solid #e2e8f0;
+}
+
+.folder {
+  margin: 0.15rem 0;
+}
+
+.folderRow {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.2rem 0.25rem;
+  border-radius: 6px;
+  min-height: 1.65rem;
+}
+
+.folderRow:hover {
+  background: #eef2f7;
+}
+
+.toggle {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0 0.15rem;
+  font-size: 0.72rem;
+  color: #475569;
+  width: 1rem;
+}
+
+.toggleEmpty {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.folderName {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.15rem 0;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folderName:hover {
+  text-decoration: underline;
+}
+
+.file {
+  display: block;
+  padding: 0.28rem 0.35rem 0.28rem 1.35rem;
+  border-radius: 6px;
+  color: #000000;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84rem;
+}
+
+.file:hover {
+  background: #eef2f7;
+  text-decoration: underline;
+}
+
+.fileActive {
+  background: #e2e8f0;
+  font-weight: 600;
+}
+
+.iconBtn {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  border-radius: 6px;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.iconBtnSubtle {
+  font-size: 0.72rem;
+  width: 1.55rem;
+  height: 1.55rem;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modalPanel {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  width: min(420px, 100%);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.15);
+}
+
+.modalPanel h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.modalErr {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.modalActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.modalActions button {
+  margin-top: 0;
+  width: auto;
+}
+
+@media (max-width: 720px) {
+  .sidebar {
+    width: 220px;
+  }
+}

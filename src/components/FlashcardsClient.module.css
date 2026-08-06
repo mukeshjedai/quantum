@@ -1,0 +1,36 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.8rem;
+}
+
+.flip {
+  perspective: 1000px;
+}
+
+.flip > div {
+  position: relative;
+  width: 100%;
+  min-height: 180px;
+  transform-style: preserve-3d;
+  transition: transform 0.35s;
+  cursor: pointer;
+}
+
+.flipped > div {
+  transform: rotateY(180deg);
+}
+
+.side {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  padding: 0.8rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.back {
+  transform: rotateY(180deg);
+}
