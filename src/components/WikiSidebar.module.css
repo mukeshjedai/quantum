@@ -7,9 +7,10 @@
   height: calc(100vh - var(--site-nav-height));
   display: flex;
   flex-direction: column;
-  background: #f8fafc;
-  border-right: 1px solid #e2e8f0;
+  background: #000000;
+  border-right: 1px solid #2a2a2a;
   font-size: 0.88rem;
+  color: #ffffff;
 }
 
 .head {
@@ -18,13 +19,14 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.65rem 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
-  background: #ffffff;
+  border-bottom: 1px solid #2a2a2a;
+  background: #000000;
 }
 
 .title {
   font-weight: 700;
   font-size: 0.92rem;
+  color: #ffffff;
 }
 
 .body {
@@ -36,14 +38,14 @@
 .empty {
   margin: 0.75rem;
   font-size: 0.82rem;
-  color: #64748b;
+  color: #a3a3a3;
   line-height: 1.45;
 }
 
 .err {
   margin: 0.75rem;
   font-size: 0.82rem;
-  color: #b91c1c;
+  color: #f87171;
 }
 
 .tree {
@@ -55,7 +57,7 @@
 .tree .tree {
   padding-left: 0.85rem;
   margin-left: 0.55rem;
-  border-left: 1px solid #e2e8f0;
+  border-left: 1px solid #333333;
 }
 
 .folder {
@@ -72,7 +74,7 @@
 }
 
 .folderRow:hover {
-  background: #eef2f7;
+  background: #1a1a1a;
 }
 
 .toggle {
@@ -81,7 +83,7 @@
   cursor: pointer;
   padding: 0 0.15rem;
   font-size: 0.72rem;
-  color: #475569;
+  color: #cccccc;
   width: 1rem;
 }
 
@@ -100,6 +102,7 @@
   cursor: pointer;
   font-weight: 600;
   font-size: 0.86rem;
+  color: #ffffff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -113,7 +116,7 @@
   display: block;
   padding: 0.28rem 0.35rem 0.28rem 1.35rem;
   border-radius: 6px;
-  color: #000000;
+  color: #ffffff;
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -122,18 +125,19 @@
 }
 
 .file:hover {
-  background: #eef2f7;
+  background: #1a1a1a;
   text-decoration: underline;
 }
 
 .fileActive {
-  background: #e2e8f0;
+  background: #2a2a2a;
   font-weight: 600;
 }
 
 .iconBtn {
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
+  border: 1px solid #444444;
+  background: #111111;
+  color: #ffffff;
   border-radius: 6px;
   width: 1.65rem;
   height: 1.65rem;
@@ -146,6 +150,11 @@
   flex-shrink: 0;
 }
 
+.iconBtn:hover {
+  background: #222222;
+  border-color: #666666;
+}
+
 .iconBtnSubtle {
   font-size: 0.72rem;
   width: 1.55rem;
@@ -156,7 +165,7 @@
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(0, 0, 0, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,7 +177,8 @@
   border-radius: 12px;
   padding: 1.25rem;
   width: min(420px, 100%);
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  color: #000000;
 }
 
 .modalPanel h2 {

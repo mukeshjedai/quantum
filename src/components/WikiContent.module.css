@@ -1,0 +1,78 @@
+.wikiContent {
+  line-height: 1.65;
+  font-size: 1.02rem;
+  color: #000000;
+}
+
+.wikiContent h1,
+.wikiContent h2,
+.wikiContent h3,
+.wikiContent h4 {
+  margin: 1.1em 0 0.4em;
+  font-weight: 650;
+}
+
+.wikiContent ul,
+.wikiContent ol {
+  margin: 0.4em 0;
+  padding-left: 1.4rem;
+}
+
+.wikiContent p {
+  margin: 0.65em 0;
+}
+
+.wikiContent pre {
+  overflow-x: auto;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.wikiContent code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.92em;
+}
+
+.wikiContent :not(pre) > code {
+  background: #f1f5f9;
+  padding: 0.12rem 0.35rem;
+  border-radius: 4px;
+}
+
+.wikiContent blockquote {
+  margin: 1em 0;
+  padding-left: 1rem;
+  border-left: 3px solid #cbd5e1;
+  color: #334155;
+}
+
+.wikiContent table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+.wikiContent th,
+.wikiContent td {
+  border: 1px solid #cbd5e1;
+  padding: 0.4rem 0.55rem;
+  text-align: left;
+}
+
+.wikiContent a {
+  color: #000000;
+}
+
+.wikiContent img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* KaTeX display math spacing */
+.wikiContent .katex-display {
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}

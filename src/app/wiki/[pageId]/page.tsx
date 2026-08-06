@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { serverFetch } from "@/lib/api";
 import type { WikiPageResponse } from "@/lib/types";
-import PostNotesViewer from "@/components/PostNotesViewer";
+import WikiContent from "@/components/WikiContent";
 
 export default async function WikiPageView({
   params,
@@ -31,7 +31,9 @@ export default async function WikiPageView({
           {page.updated_at ? `Updated ${page.updated_at}` : `Created ${page.created_at}`}
           {" · "}Storage: {backend}
         </p>
-        <PostNotesViewer markdown={data.body_markdown || ""} />
+        <div className="card">
+          <WikiContent content={data.body_markdown || ""} />
+        </div>
       </div>
     );
   }
@@ -45,13 +47,8 @@ export default async function WikiPageView({
           {" · "}Paste notes · Storage: {backend}
         </p>
         <div className="card">
-          <pre style={{ whiteSpace: "pre-wrap", margin: 0, lineHeight: 1.6 }}>
-            {data.body_markdown}
-          </pre>
+          <WikiContent content={data.body_markdown || ""} />
         </div>
-        <p className="muted" style={{ fontSize: "0.85rem" }}>
-          Full markdown rendering with embeds loads from the legacy viewer; edit to preview rich content.
-        </p>
       </div>
     );
   }
