@@ -31,9 +31,10 @@ export default async function WikiPageView({
           {page.updated_at ? `Updated ${page.updated_at}` : `Created ${page.created_at}`}
           {" · "}Storage: {backend}
         </p>
-        <div className="card">
-          <WikiContent content={data.body_markdown || ""} />
-        </div>
+        <WikiContent
+          content={String(page.body_raw ?? data.body_markdown ?? "")}
+          pageType="post_notes"
+        />
       </div>
     );
   }
@@ -46,9 +47,10 @@ export default async function WikiPageView({
           <Link href={`/wiki/paste?edit=${page.id}`}>Edit this page</Link>
           {" · "}Paste notes · Storage: {backend}
         </p>
-        <div className="card">
-          <WikiContent content={data.body_markdown || ""} />
-        </div>
+        <WikiContent
+          content={String(data.body_markdown ?? page.body_raw ?? "")}
+          pageType="manual"
+        />
       </div>
     );
   }
