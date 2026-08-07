@@ -3,6 +3,12 @@ import { notFound } from "next/navigation";
 import { serverFetch } from "@/lib/api";
 import type { WikiPageResponse } from "@/lib/types";
 import WikiContent from "@/components/WikiContent";
+import WikiPageTags from "@/components/WikiPageTags";
+
+function pageTags(page: WikiPageResponse["page"]): string[] {
+  const raw = page.tags;
+  return Array.isArray(raw) ? raw.map(String) : [];
+}
 
 export default async function WikiPageView({
   params,
@@ -19,11 +25,13 @@ export default async function WikiPageView({
 
   const { page, backend } = data;
   const pageType = page.page_type || "video";
+  const tags = pageTags(page);
 
   if (pageType === "post_notes") {
     return (
       <div className="wrap">
         <h1 style={{ margin: "0 0 0.5rem" }}>{page.title}</h1>
+        <WikiPageTags pageId={page.id} initialTags={tags} />
         <p className="muted">
           <Link href={`/wiki/post-notes?edit=${page.id}`}>Edit this page</Link>
           {" · "}Post notes
@@ -43,6 +51,7 @@ export default async function WikiPageView({
     return (
       <div className="wrap">
         <h1>{page.title}</h1>
+        <WikiPageTags pageId={page.id} initialTags={tags} />
         <p className="muted">
           <Link href={`/wiki/paste?edit=${page.id}`}>Edit this page</Link>
           {" · "}Paste notes · Storage: {backend}
@@ -59,6 +68,7 @@ export default async function WikiPageView({
     return (
       <div className="wrap">
         <h1>{page.title}</h1>
+        <WikiPageTags pageId={page.id} initialTags={tags} />
         <p className="muted">
           <Link href={`/wiki/upload-html?edit=${page.id}`}>Replace HTML</Link>
           {" · "}Storage: {backend}
@@ -75,6 +85,7 @@ export default async function WikiPageView({
     return (
       <div className="wrap" style={{ maxWidth: "100%", padding: "1rem" }}>
         <h1>{page.title}</h1>
+        <WikiPageTags pageId={page.id} initialTags={tags} />
         <p className="muted">
           <Link href={`/wiki/html-workspace?edit=${page.id}`}>Replace file</Link>
           {" · "}Storage: {backend}
@@ -91,6 +102,7 @@ export default async function WikiPageView({
   return (
     <div className="wrap">
       <h1>{page.title}</h1>
+      <WikiPageTags pageId={page.id} initialTags={tags} />
       <p className="muted">
         Video: {page.video_id} · Storage: {backend}
       </p>

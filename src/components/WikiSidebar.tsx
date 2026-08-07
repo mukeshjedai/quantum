@@ -5,6 +5,11 @@ import { usePathname, useRouter } from "next/navigation";
 import styles from "./WikiSidebar.module.css";
 import { parseApiError } from "@/lib/api";
 import type { FolderLink, FolderNode } from "@/lib/types";
+import {
+  loadWikiPanelOpen,
+  setWikiPanelOpen,
+  WIKI_PANEL_EVENT,
+} from "@/lib/wikiSidebarState";
 
 const STORAGE_KEY = "wiki-sidebar-expanded-v1";
 
@@ -142,6 +147,24 @@ export default function WikiSidebar() {
   const [pendingFileFolderId, setPendingFileFolderId] = useState<string | null>(null);
   const [pendingFolderParentId, setPendingFolderParentId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [panelOpen, setPanelOpen] = useState(true);
+
+  useEffect(() => {
+    setPanelOpen(loadWikiPanelOpen());
+    const onPanel = (e: Event) => {
+      const ev = e as CustomEvent<{ open: boolean }>;
+      setPanelOpen(!!ev.detail?.open);
+    };
+    window.addEventListener(WIKI_PANEL_EVENT, onPanel);
+    return () => window.removeEventListener(WIKI_PANEL_EVENT, onPanel);
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle("wiki-sidebar-collapsed", !panelOpen);
+  }, [panelOpen]);
+
+  const collapsePanel = () => setWikiPanelOpen(false);
+  const expandPanel = () => setWikiPanelOpen(true);
 
   useEffect(() => {
     setSearch(window.location.search);
@@ -268,8 +291,33 @@ export default function WikiSidebar() {
 
   return (
     <>
-      <aside className={styles.sidebar} aria-label="Wiki folders and files">
+      {!panelOpen ? (
+        <button
+          type="button"
+          className={styles.expandTab}
+          onClick={expandPanel}
+          title="Expand wiki sidebar"
+          aria-label="Expand wiki sidebar"
+        >
+          ▶
+        </button>
+      ) : null}
+
+      <aside
+        className={`${styles.sidebar} ${panelOpen ? "" : styles.sidebarCollapsed}`}
+        aria-label="Wiki folders and files"
+        aria-hidden={!panelOpen}
+      >
         <div className={styles.head}>
+          <button
+            type="button"
+            className={styles.collapseBtn}
+            onClick={collapsePanel}
+            title="Collapse sidebar"
+            aria-label="Collapse sidebar"
+          >
+            ◀
+          </button>
           <span className={styles.title}>Wiki files</span>
           <button
             type="button"

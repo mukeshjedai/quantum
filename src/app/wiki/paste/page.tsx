@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import PasteNotesBodyEditor from "@/components/PasteNotesBodyEditor";
 import WikiFolderSelect from "@/components/WikiFolderSelect";
 import { parseApiError } from "@/lib/api";
 
@@ -11,6 +12,7 @@ function PasteNotesEditorInner() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [preview, setPreview] = useState("");
+  const [status, setStatus] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -28,6 +30,7 @@ function PasteNotesEditorInner() {
   const runPreview = async () => {
     setBusy(true);
     setErr("");
+    setStatus("");
     try {
       const res = await fetch("/api/wiki/manual/preview", {
         method: "POST",
@@ -37,6 +40,7 @@ function PasteNotesEditorInner() {
       if (!res.ok) throw new Error(parseApiError(await res.text()));
       const data = await res.json();
       setPreview(data.markdown || "");
+      setStatus("Preview updated.");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Preview failed");
     } finally {
@@ -47,6 +51,7 @@ function PasteNotesEditorInner() {
   const save = async () => {
     setBusy(true);
     setErr("");
+    setStatus("");
     const folderEl = document.getElementById("wiki-folder") as HTMLSelectElement | null;
     try {
       const res = await fetch("/api/wiki/manual/save", {
@@ -72,21 +77,26 @@ function PasteNotesEditorInner() {
   return (
     <div className="wrap">
       <h1>{editId ? "Edit paste notes" : "Paste notes"}</h1>
-      <p className="muted">Paste rich notes with embeds; preview converts to wiki markdown.</p>
+      <p className="muted">
+        Paste Markdown-style notes with math, embeds, and images. Drag images into the editor or paste
+        them from the clipboard.
+      </p>
       <div className="card">
         <label htmlFor="title">Title</label>
         <input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
         <label htmlFor="body" style={{ marginTop: "0.6rem" }}>
           Notes
         </label>
-        <textarea
+        <PasteNotesBodyEditor
           id="body"
           value={body}
-          onChange={(e) => setBody(e.target.value)}
-          style={{ minHeight: 280 }}
+          onChange={setBody}
+          disabled={busy}
+          onStatus={setStatus}
+          onError={setErr}
         />
         {!editId ? <WikiFolderSelect /> : null}
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.55rem" }}>
           <button type="button" onClick={runPreview} disabled={busy}>
             Preview
           </button>

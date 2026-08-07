@@ -16,6 +16,7 @@ export interface WikiPage {
   video_id?: string;
   transcript?: string;
   summary?: string;
+  tags?: string[];
   [key: string]: unknown;
 }
 
@@ -39,6 +40,7 @@ export interface WikiListItem {
   video_id?: string;
   summary?: string;
   created_at?: string;
+  tags?: string[];
 }
 
 export interface FolderNode {

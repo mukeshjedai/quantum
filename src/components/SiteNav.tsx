@@ -2,13 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import styles from "./SiteNav.module.css";
+import WikiSearch from "./WikiSearch";
+import {
+  loadWikiPanelOpen,
+  setWikiPanelOpen,
+  WIKI_PANEL_EVENT,
+} from "@/lib/wikiSidebarState";
 
 const links = [
   { href: "/", label: "Translator" },
   { href: "/insights", label: "Insights" },
   { href: "/flashcards", label: "Flashcards" },
-  { href: "/wiki", label: "Wiki", match: (p: string) =>
+  {
+    href: "/wiki",
+    label: "Wiki",
+    match: (p: string) =>
       p === "/wiki" ||
       (p.startsWith("/wiki/") &&
         !p.startsWith("/wiki/paste") &&
@@ -29,8 +39,25 @@ function isActive(pathname: string, href: string, match?: (p: string) => boolean
   return pathname === href;
 }
 
+function isWikiArea(pathname: string) {
+  return pathname === "/wiki" || pathname.startsWith("/wiki/");
+}
+
 export default function SiteNav() {
   const pathname = usePathname();
+  const onWiki = isWikiArea(pathname);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    if (!onWiki) return;
+    setSidebarOpen(loadWikiPanelOpen());
+    const onPanel = (e: Event) => {
+      const ev = e as CustomEvent<{ open: boolean }>;
+      setSidebarOpen(!!ev.detail?.open);
+    };
+    window.addEventListener(WIKI_PANEL_EVENT, onPanel);
+    return () => window.removeEventListener(WIKI_PANEL_EVENT, onPanel);
+  }, [onWiki]);
 
   return (
     <header className={styles.nav} role="banner">
@@ -50,6 +77,21 @@ export default function SiteNav() {
           </Link>
         ))}
       </nav>
+      {onWiki ? (
+        <div className={styles.wikiTools}>
+          <button
+            type="button"
+            className={styles.sidebarToggle}
+            onClick={() => setWikiPanelOpen(!sidebarOpen)}
+            title={sidebarOpen ? "Collapse wiki sidebar" : "Expand wiki sidebar"}
+            aria-label={sidebarOpen ? "Collapse wiki sidebar" : "Expand wiki sidebar"}
+            aria-pressed={sidebarOpen}
+          >
+            {sidebarOpen ? "◀ Sidebar" : "▶ Sidebar"}
+          </button>
+          <WikiSearch />
+        </div>
+      ) : null}
     </header>
   );
 }

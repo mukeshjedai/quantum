@@ -120,11 +120,22 @@ button:disabled {
 body.wiki-with-sidebar .wrap {
   margin-left: var(--wiki-sidebar-width);
   max-width: min(980px, calc(100vw - var(--wiki-sidebar-width) - 2rem));
+  transition: margin-left 0.22s ease, max-width 0.22s ease;
+}
+
+body.wiki-with-sidebar.wiki-sidebar-collapsed .wrap {
+  margin-left: 0;
+  max-width: min(980px, calc(100vw - 2rem));
 }
 
 @media (max-width: 720px) {
   body.wiki-with-sidebar .wrap {
     margin-left: 220px;
     max-width: calc(100vw - 220px - 1rem);
+  }
+
+  body.wiki-with-sidebar.wiki-sidebar-collapsed .wrap {
+    margin-left: 0;
+    max-width: calc(100vw - 1rem);
   }
 }

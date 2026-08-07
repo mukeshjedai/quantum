@@ -1,0 +1,121 @@
+.root {
+  position: relative;
+}
+
+.trigger {
+  margin-top: 0;
+  padding: 0.42rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #000000;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  width: auto;
+}
+
+.trigger:hover {
+  background: #f8fafc;
+}
+
+.popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 120;
+  width: min(420px, calc(100vw - 2rem));
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+  padding: 0.65rem;
+}
+
+.input {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.92rem;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0.35rem 0.25rem 0.4rem;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow: auto;
+}
+
+.item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 0;
+  padding: 0.55rem 0.6rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  color: #000000;
+}
+
+.item:hover,
+.itemActive {
+  background: #f1f5f9;
+}
+
+.itemTitle {
+  display: block;
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+
+.itemMeta {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.itemSummary {
+  display: block;
+  font-size: 0.78rem;
+  color: #475569;
+  margin-top: 0.25rem;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemTags {
+  display: block;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+.empty {
+  padding: 0.65rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.footer {
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.82rem;
+}
+
+.footer a {
+  color: #000000;
+}
