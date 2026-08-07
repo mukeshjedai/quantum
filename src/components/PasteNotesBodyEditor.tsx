@@ -1,11 +1,19 @@
 "use client";
 
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import PasteNotesImageBlock from "@/components/PasteNotesImageBlock";
 import {
   imageFilesFromClipboard,
   imageFilesFromDataTransfer,
-  insertAtCursor,
+  insertImageIntoBlocks,
+  parsePasteBlocks,
+  removeImageBlock,
+  serializePasteBlocks,
+  updateImageBlock,
+  updateTextBlock,
+  uploadResultToImageBlock,
   uploadWikiImage,
+  type PasteBlock,
 } from "@/lib/wikiPasteEditor";
 import styles from "./PasteNotesBodyEditor.module.css";
 
@@ -18,6 +26,12 @@ type PasteNotesBodyEditorProps = {
   onError?: (message: string) => void;
 };
 
+type FocusState = {
+  blockIndex: number;
+  start: number;
+  end: number;
+};
+
 export default function PasteNotesBodyEditor({
   id,
   value,
@@ -26,26 +40,38 @@ export default function PasteNotesBodyEditor({
   onStatus,
   onError,
 }: PasteNotesBodyEditorProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadInputId = useId();
+  const lastEmitted = useRef(value);
+  const focusRef = useRef<FocusState | null>(null);
+  const [blocks, setBlocks] = useState<PasteBlock[]>(() => parsePasteBlocks(value));
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const insertMarkdown = useCallback(
-    (markdown: string) => {
-      const el = textareaRef.current;
-      const start = el?.selectionStart ?? value.length;
-      const end = el?.selectionEnd ?? value.length;
-      const { value: next, cursor } = insertAtCursor(value, start, end, markdown, false);
-      onChange(next);
-      requestAnimationFrame(() => {
-        el?.focus();
-        el?.setSelectionRange(cursor, cursor);
-      });
+  useEffect(() => {
+    if (value !== lastEmitted.current) {
+      setBlocks(parsePasteBlocks(value));
+      lastEmitted.current = value;
+    }
+  }, [value]);
+
+  const emit = useCallback(
+    (nextBlocks: PasteBlock[]) => {
+      setBlocks(nextBlocks);
+      const serialized = serializePasteBlocks(nextBlocks);
+      lastEmitted.current = serialized;
+      onChange(serialized);
     },
-    [onChange, value],
+    [onChange],
   );
+
+  const rememberFocus = (blockIndex: number, el: HTMLTextAreaElement) => {
+    focusRef.current = {
+      blockIndex,
+      start: el.selectionStart,
+      end: el.selectionEnd,
+    };
+  };
 
   const uploadImages = useCallback(
     async (files: File[]) => {
@@ -53,6 +79,7 @@ export default function PasteNotesBodyEditor({
       setUploading(true);
       onError?.("");
       try {
+        let nextBlocks = blocks;
         for (let i = 0; i < files.length; i += 1) {
           const file = files[i];
           onStatus?.(
@@ -61,8 +88,14 @@ export default function PasteNotesBodyEditor({
               : "Uploading image…",
           );
           const result = await uploadWikiImage(file);
-          insertMarkdown(result.markdown || `![image](${result.url})`);
+          const imageBlock = uploadResultToImageBlock(result);
+          nextBlocks = insertImageIntoBlocks(
+            nextBlocks,
+            i === 0 ? focusRef.current : null,
+            imageBlock,
+          );
         }
+        emit(nextBlocks);
         onStatus?.(
           files.length > 1 ? `${files.length} images inserted.` : "Image inserted at cursor.",
         );
@@ -72,7 +105,7 @@ export default function PasteNotesBodyEditor({
         setUploading(false);
       }
     },
-    [disabled, insertMarkdown, onError, onStatus, uploading],
+    [blocks, disabled, emit, onError, onStatus, uploading],
   );
 
   const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -98,7 +131,7 @@ export default function PasteNotesBodyEditor({
 
   const onPaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     if (disabled || uploading) return;
-    const files = imageFilesFromClipboard(e.clipboardData);
+    const files = imageFilesFromClipboard(e.dataTransfer);
     if (!files.length) return;
     e.preventDefault();
     await uploadImages(files);
@@ -110,22 +143,49 @@ export default function PasteNotesBodyEditor({
     await uploadImages(files);
   };
 
+  const hasImages = blocks.some((block) => block.type === "image");
+
   return (
     <div
-      className={styles.wrap}
+      className={`${styles.wrap}${dragOver ? ` ${styles.dragOverWrap}` : ""}`}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={(e) => void onDrop(e)}
     >
-      <textarea
-        ref={textareaRef}
-        id={id}
-        className={`${styles.textarea}${dragOver ? ` ${styles.dragOver}` : ""}`}
-        value={value}
-        disabled={disabled || uploading}
-        onChange={(e) => onChange(e.target.value)}
-        onPaste={(e) => void onPaste(e)}
-      />
+      <div className={styles.blocks}>
+        {blocks.map((block, index) => {
+          if (block.type === "image") {
+            return (
+              <PasteNotesImageBlock
+                key={`img-${index}-${block.url}`}
+                block={block}
+                disabled={disabled || uploading}
+                onChange={(patch) => emit(updateImageBlock(blocks, index, patch))}
+                onRemove={() => emit(removeImageBlock(blocks, index))}
+              />
+            );
+          }
+
+          const isPrimary = index === 0;
+          return (
+            <textarea
+              key={`text-${index}`}
+              id={isPrimary ? id : undefined}
+              className={`${styles.textarea}${isPrimary && !hasImages ? ` ${styles.textareaPrimary}` : ""}`}
+              value={block.content}
+              disabled={disabled || uploading}
+              rows={Math.max(3, block.content.split("\n").length)}
+              placeholder={hasImages ? "Continue writing…" : "Paste your notes here…"}
+              onChange={(e) => emit(updateTextBlock(blocks, index, e.target.value))}
+              onSelect={(e) => rememberFocus(index, e.currentTarget)}
+              onKeyUp={(e) => rememberFocus(index, e.currentTarget)}
+              onClick={(e) => rememberFocus(index, e.currentTarget)}
+              onFocus={(e) => rememberFocus(index, e.currentTarget)}
+              onPaste={(e) => void onPaste(e)}
+            />
+          );
+        })}
+      </div>
       <div className={styles.toolbar}>
         <button
           type="button"
@@ -145,8 +205,8 @@ export default function PasteNotesBodyEditor({
         />
       </div>
       <p className={styles.hint}>
-        Drag and drop images onto the editor, paste from clipboard, or use Upload image. Images are
-        stored and inserted as markdown at the cursor.
+        Images appear inline with a live preview. Drag the corner handle or use the slider to resize.
+        You can also drag and drop or paste images into any text area.
       </p>
     </div>
   );

@@ -2,18 +2,29 @@
   position: relative;
 }
 
+.dragOverWrap {
+  outline: 2px dashed #000000;
+  outline-offset: 2px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .textarea {
   width: 100%;
   box-sizing: border-box;
-  min-height: 280px;
+  min-height: 120px;
   resize: vertical;
   line-height: 1.45;
 }
 
-.dragOver {
-  outline: 2px dashed #000000;
-  outline-offset: 2px;
-  background: #f8fafc;
+.textareaPrimary {
+  min-height: 280px;
 }
 
 .hint {

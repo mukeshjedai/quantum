@@ -78,8 +78,8 @@ function PasteNotesEditorInner() {
     <div className="wrap">
       <h1>{editId ? "Edit paste notes" : "Paste notes"}</h1>
       <p className="muted">
-        Paste Markdown-style notes with math, embeds, and images. Drag images into the editor or paste
-        them from the clipboard.
+        Paste Markdown-style notes with math and embeds. Images show inline with a live preview — drag
+        the corner or use the slider to resize before saving.
       </p>
       <div className="card">
         <label htmlFor="title">Title</label>

@@ -1,0 +1,75 @@
+.imageBlock {
+  margin: 0.65rem 0;
+  padding: 0.65rem;
+  border: 1px solid var(--card-border, #e2e8f0);
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.previewWrap {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+}
+
+.preview {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.resizeHandle {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  border-radius: 3px;
+  background: #000000;
+  cursor: nwse-resize;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+}
+
+.slider {
+  flex: 1;
+  min-width: 140px;
+  margin: 0;
+}
+
+.widthLabel {
+  font-size: 0.82rem;
+  color: var(--muted, #64748b);
+  min-width: 4.5rem;
+}
+
+.removeBtn {
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  width: auto;
+  font-size: 0.82rem;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #cbd5e1;
+}
+
+.alt {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted, #64748b);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
