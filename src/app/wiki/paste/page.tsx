@@ -3,14 +3,17 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import PasteNotesBodyEditor from "@/components/PasteNotesBodyEditor";
+import WikiContent from "@/components/WikiContent";
 import WikiFolderSelect from "@/components/WikiFolderSelect";
 import { parseApiError } from "@/lib/api";
+import type { WikiAttachment } from "@/lib/types";
 
 function PasteNotesEditorInner() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [attachments, setAttachments] = useState<WikiAttachment[]>([]);
   const [preview, setPreview] = useState("");
   const [status, setStatus] = useState("");
   const [err, setErr] = useState("");
@@ -23,6 +26,7 @@ function PasteNotesEditorInner() {
       .then((data) => {
         setTitle(data.page?.title || "");
         setBody(data.page?.body_raw || "");
+        setAttachments(data.attachments || data.page?.attachments || []);
       })
       .catch((e) => setErr(String(e)));
   }, [editId]);
@@ -62,6 +66,7 @@ function PasteNotesEditorInner() {
           body,
           page_id: editId,
           folder_id: folderEl?.value || null,
+          attachments,
         }),
       });
       if (!res.ok) throw new Error(parseApiError(await res.text()));
@@ -78,8 +83,8 @@ function PasteNotesEditorInner() {
     <div className="wrap">
       <h1>{editId ? "Edit paste notes" : "Paste notes"}</h1>
       <p className="muted">
-        Paste Markdown-style notes with math and embeds. Images show inline with a live preview — drag
-        the corner or use the slider to resize before saving.
+        Paste Markdown-style notes with math and embeds. Drag images or files into the editor — images
+        preview inline; other files are stored on the page.
       </p>
       <div className="card">
         <label htmlFor="title">Title</label>
@@ -91,6 +96,9 @@ function PasteNotesEditorInner() {
           id="body"
           value={body}
           onChange={setBody}
+          pageId={editId}
+          attachments={attachments}
+          onAttachmentsChange={setAttachments}
           disabled={busy}
           onStatus={setStatus}
           onError={setErr}
@@ -109,8 +117,8 @@ function PasteNotesEditorInner() {
       </div>
       {preview ? (
         <div className="card">
-          <h2 style={{ marginTop: 0, fontSize: "1rem" }}>Preview markdown</h2>
-          <pre style={{ whiteSpace: "pre-wrap", margin: 0 }}>{preview}</pre>
+          <h2 style={{ marginTop: 0, fontSize: "1rem" }}>Preview</h2>
+          <WikiContent content={preview} pageType="manual" />
         </div>
       ) : null}
     </div>

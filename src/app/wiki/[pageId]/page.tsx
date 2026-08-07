@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { serverFetch } from "@/lib/api";
-import type { WikiPageResponse } from "@/lib/types";
+import type { WikiAttachment, WikiPageResponse } from "@/lib/types";
 import WikiContent from "@/components/WikiContent";
+import WikiPageFilesPanel from "@/components/WikiPageFilesPanel";
 import WikiPageTags from "@/components/WikiPageTags";
 
 function pageTags(page: WikiPageResponse["page"]): string[] {
@@ -10,6 +11,10 @@ function pageTags(page: WikiPageResponse["page"]): string[] {
   return Array.isArray(raw) ? raw.map(String) : [];
 }
 
+function pageAttachments(data: WikiPageResponse): WikiAttachment[] {
+  const raw = data.attachments ?? data.page.attachments;
+  return Array.isArray(raw) ? (raw as WikiAttachment[]) : [];
+}
 export default async function WikiPageView({
   params,
 }: {
@@ -48,10 +53,12 @@ export default async function WikiPageView({
   }
 
   if (pageType === "manual") {
+    const attachments = pageAttachments(data);
     return (
       <div className="wrap">
         <h1>{page.title}</h1>
         <WikiPageTags pageId={page.id} initialTags={tags} />
+        <WikiPageFilesPanel pageId={page.id} initialAttachments={attachments} />
         <p className="muted">
           <Link href={`/wiki/paste?edit=${page.id}`}>Edit this page</Link>
           {" · "}Paste notes · Storage: {backend}

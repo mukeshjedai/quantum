@@ -2,10 +2,18 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import PasteNotesImageBlock from "@/components/PasteNotesImageBlock";
+import WikiPageAttachments from "@/components/WikiPageAttachments";
+import {
+  allFilesFromDataTransfer,
+  isImageFile,
+  mergeAttachments,
+  uploadWikiFile,
+} from "@/lib/wikiFiles";
+import type { WikiAttachment } from "@/lib/types";
 import {
   imageFilesFromClipboard,
-  imageFilesFromDataTransfer,
   insertImageIntoBlocks,
+  insertTextIntoBlocks,
   parsePasteBlocks,
   removeImageBlock,
   serializePasteBlocks,
@@ -21,6 +29,9 @@ type PasteNotesBodyEditorProps = {
   id?: string;
   value: string;
   onChange: (value: string) => void;
+  pageId?: string | null;
+  attachments?: WikiAttachment[];
+  onAttachmentsChange?: (attachments: WikiAttachment[]) => void;
   disabled?: boolean;
   onStatus?: (message: string) => void;
   onError?: (message: string) => void;
@@ -36,12 +47,15 @@ export default function PasteNotesBodyEditor({
   id,
   value,
   onChange,
+  pageId = null,
+  attachments = [],
+  onAttachmentsChange,
   disabled = false,
   onStatus,
   onError,
 }: PasteNotesBodyEditorProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadInputId = useId();
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const imageInputId = useId();
   const lastEmitted = useRef(value);
   const focusRef = useRef<FocusState | null>(null);
   const [blocks, setBlocks] = useState<PasteBlock[]>(() => parsePasteBlocks(value));
@@ -108,6 +122,63 @@ export default function PasteNotesBodyEditor({
     [blocks, disabled, emit, onError, onStatus, uploading],
   );
 
+  const uploadAttachmentFiles = useCallback(
+    async (files: File[]) => {
+      if (!files.length || disabled || uploading) return;
+      setUploading(true);
+      onError?.("");
+      try {
+        let nextBlocks = blocks;
+        const uploaded: WikiAttachment[] = [];
+        for (let i = 0; i < files.length; i += 1) {
+          const file = files[i];
+          onStatus?.(
+            files.length > 1
+              ? `Uploading file ${i + 1} of ${files.length}…`
+              : "Uploading file…",
+          );
+          const result = await uploadWikiFile(file, pageId || undefined);
+          uploaded.push(result);
+          nextBlocks = insertTextIntoBlocks(
+            nextBlocks,
+            i === 0 ? focusRef.current : null,
+            result.markdown,
+          );
+        }
+        emit(nextBlocks);
+        onAttachmentsChange?.(mergeAttachments(attachments, uploaded));
+        onStatus?.(
+          files.length > 1 ? `${files.length} files attached.` : "File attached and linked in notes.",
+        );
+      } catch (e) {
+        onError?.(e instanceof Error ? e.message : "File upload failed.");
+      } finally {
+        setUploading(false);
+      }
+    },
+    [
+      attachments,
+      blocks,
+      disabled,
+      emit,
+      onAttachmentsChange,
+      onError,
+      onStatus,
+      pageId,
+      uploading,
+    ],
+  );
+
+  const handleFiles = useCallback(
+    async (files: File[]) => {
+      const images = files.filter(isImageFile);
+      const others = files.filter((file) => !isImageFile(file));
+      if (images.length) await uploadImages(images);
+      if (others.length) await uploadAttachmentFiles(others);
+    },
+    [uploadAttachmentFiles, uploadImages],
+  );
+
   const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     if (disabled || uploading) return;
     if (!e.dataTransfer?.types.includes("Files")) return;
@@ -124,24 +195,31 @@ export default function PasteNotesBodyEditor({
     e.preventDefault();
     setDragOver(false);
     if (disabled || uploading) return;
-    const files = imageFilesFromDataTransfer(e.dataTransfer);
+    const files = allFilesFromDataTransfer(e.dataTransfer);
     if (!files.length) return;
-    await uploadImages(files);
+    await handleFiles(files);
   };
 
   const onPaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     if (disabled || uploading) return;
-    const files = imageFilesFromClipboard(e.dataTransfer);
+    const files = imageFilesFromClipboard(e.clipboardData);
     if (!files.length) return;
     e.preventDefault();
-    await uploadImages(files);
+    await handleFiles(files);
   };
 
-  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     e.target.value = "";
-    await uploadImages(files);
+    await handleFiles(files);
   };
+
+  const insertAttachmentLink = useCallback(
+    (markdown: string) => {
+      emit(insertTextIntoBlocks(blocks, focusRef.current, markdown));
+    },
+    [blocks, emit],
+  );
 
   const hasImages = blocks.some((block) => block.type === "image");
 
@@ -186,27 +264,38 @@ export default function PasteNotesBodyEditor({
           );
         })}
       </div>
+
       <div className={styles.toolbar}>
         <button
           type="button"
           disabled={disabled || uploading}
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => imageInputRef.current?.click()}
         >
           Upload image
         </button>
         <input
-          ref={fileInputRef}
-          id={uploadInputId}
+          ref={imageInputRef}
+          id={imageInputId}
           type="file"
           className={styles.hiddenInput}
           accept="image/*,.gif,.apng,.avif"
           multiple
-          onChange={(e) => void onFileChange(e)}
+          onChange={(e) => void onImageChange(e)}
         />
       </div>
+
+      <WikiPageAttachments
+        pageId={pageId}
+        attachments={attachments}
+        onChange={onAttachmentsChange}
+        onInsertLink={insertAttachmentLink}
+        disabled={disabled || uploading}
+        compact
+      />
+
       <p className={styles.hint}>
-        Images appear inline with a live preview. Drag the corner handle or use the slider to resize.
-        You can also drag and drop or paste images into any text area.
+        Drag and drop images or files anywhere in the editor. Images show inline with resize controls;
+        other files are stored on the page and linked in your notes.
       </p>
     </div>
   );

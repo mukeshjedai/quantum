@@ -147,6 +147,29 @@ export function insertImageIntoBlocks(
   return next;
 }
 
+export function insertTextIntoBlocks(
+  blocks: PasteBlock[],
+  focus: { blockIndex: number; start: number; end: number } | null,
+  text: string,
+): PasteBlock[] {
+  const next = [...blocks];
+  const focusIndex = focus?.blockIndex ?? next.length - 1;
+  const focusBlock = next[focusIndex];
+  const insert = text.endsWith("\n") ? text : `${text}\n`;
+
+  if (focusBlock?.type === "text") {
+    const start = focus?.start ?? focusBlock.content.length;
+    const end = focus?.end ?? start;
+    const before = focusBlock.content.slice(0, start);
+    const after = focusBlock.content.slice(end);
+    next[focusIndex] = { type: "text", content: `${before}${insert}${after}` };
+    return next;
+  }
+
+  next.splice(focusIndex + 1, 0, { type: "text", content: insert });
+  return next;
+}
+
 export function updateImageBlock(
   blocks: PasteBlock[],
   blockIndex: number,

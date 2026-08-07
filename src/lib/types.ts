@@ -6,6 +6,15 @@ export type WikiPageType =
   | "video"
   | string;
 
+export interface WikiAttachment {
+  id: string;
+  filename: string;
+  size: number;
+  content_type?: string;
+  uploaded_at?: string;
+  url: string;
+}
+
 export interface WikiPage {
   id: string;
   title?: string;
@@ -17,6 +26,7 @@ export interface WikiPage {
   transcript?: string;
   summary?: string;
   tags?: string[];
+  attachments?: WikiAttachment[];
   [key: string]: unknown;
 }
 
@@ -24,6 +34,7 @@ export interface WikiPageResponse {
   page: WikiPage;
   backend: string;
   warning?: string | null;
+  attachments?: WikiAttachment[];
   body_markdown?: string;
   body_html?: string;
   document_url?: string;

@@ -173,7 +173,7 @@ export async function createWikiMarkdown() {
   return markdownit({ html: false, linkify: true, breaks: true })
     .use(texmath, {
       engine: katex,
-      delimiters: "brackets",
+      delimiters: ["brackets", "dollars"],
       katexOptions: { throwOnError: false, strict: false },
     })
     .use(wikiEmbedPlugin);

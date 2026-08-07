@@ -9,12 +9,15 @@ type WikiContentProps = {
   /** `manual` = paste notes (markdown-it + KaTeX). `post_notes` = Marked + MathJax. */
   pageType: "manual" | "post_notes";
   className?: string;
+  /** When true, run /api/wiki/manual/preview normalization before rendering manual notes. */
+  normalizeManual?: boolean;
 };
 
 export default function WikiContent({
   content,
   pageType,
   className,
+  normalizeManual = false,
 }: WikiContentProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const errRef = useRef<HTMLParagraphElement>(null);
@@ -57,10 +60,21 @@ export default function WikiContent({
           if (cancelled) return;
           await renderPostNotes(root, content);
         } else {
+          let markdown = content;
+          if (normalizeManual) {
+            const res = await fetch("/api/wiki/manual/preview", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ body: content }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            markdown = data.markdown || content;
+          }
           const { createWikiMarkdown } = await loadWikiEmbed();
           if (cancelled) return;
           const md = await createWikiMarkdown();
-          root.innerHTML = md.render(content);
+          root.innerHTML = md.render(markdown);
         }
       } catch (e) {
         if (!cancelled && errRef.current) {
@@ -75,7 +89,7 @@ export default function WikiContent({
       cancelled = true;
       root.innerHTML = "";
     };
-  }, [content, pageType]);
+  }, [content, pageType, normalizeManual]);
 
   return (
     <>
