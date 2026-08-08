@@ -37,8 +37,12 @@ export function authBaseUrl(request: NextRequest): string {
   return "http://localhost:3000";
 }
 
-export function googleRedirectUri(request: NextRequest): string {
-  return `${authBaseUrl(request)}/api/auth/callback/google`;
+export function googleRedirectUri(_request?: NextRequest): string {
+  const base = process.env.NEXTAUTH_URL?.trim().replace(/\/$/, "");
+  if (base) {
+    return `${base}/api/auth/callback/google`;
+  }
+  return "http://localhost:3000/api/auth/callback/google";
 }
 
 export function authCookieSecure(): boolean {

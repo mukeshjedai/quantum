@@ -32,7 +32,12 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(new URL(safeNextPath(next), request.url));
     setAuthCookie(response, token);
     return response;
-  } catch {
-    return NextResponse.redirect(new URL("/login?error=OAuthCallback", request.url));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown";
+    let code = "OAuthCallback";
+    if (message.includes("invalid_client")) code = "invalid_client";
+    else if (message.includes("redirect_uri_mismatch")) code = "redirect_uri_mismatch";
+    else if (message.includes("invalid_grant")) code = "invalid_grant";
+    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(code)}`, request.url));
   }
 }
