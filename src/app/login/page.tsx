@@ -51,7 +51,17 @@ function LoginInner() {
         </button>
         {error ? (
           <p className={styles.err}>
-            Sign-in failed ({error}). Check your Google OAuth settings and try again.
+            Sign-in failed ({error}).
+            {error === "OAuthCallback" ? (
+              <>
+                {" "}
+                On Vercel, set <code>NEXTAUTH_SECRET</code>, <code>GOOGLE_CLIENT_ID</code>, and{" "}
+                <code>GOOGLE_CLIENT_SECRET</code> under Project → Settings → Environment Variables,
+                then redeploy. Visit <code>/api/auth/status</code> to verify.
+              </>
+            ) : (
+              <> Check your Google OAuth settings and try again.</>
+            )}
           </p>
         ) : null}
       </div>

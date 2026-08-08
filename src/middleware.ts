@@ -1,3 +1,4 @@
+import { getAuthSecret } from "@/lib/auth-env";
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -9,7 +10,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({ req, secret: getAuthSecret() });
   if (token) {
     return NextResponse.next();
   }
