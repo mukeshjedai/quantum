@@ -7,16 +7,18 @@ import styles from "./login.module.css";
 
 function LoginInner() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || searchParams.get("next") || "/";
   const error = searchParams.get("error");
   const [busy, setBusy] = useState(false);
 
   return (
-    <div className={styles.loginWrap}>
+    <div className={styles.page}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Sign in to AppLimit</h1>
+        <p className={styles.kicker}>AppLimit</p>
+        <h1 className={styles.title}>Sign in</h1>
         <p className={styles.subtitle}>
-          Use your Google account to access the translator, wiki, flashcards, and insights.
+          Continue to the translator, wiki, flashcards, and insights. You stay on this page until you
+          choose Google sign-in below.
         </p>
         <button
           type="button"
@@ -45,17 +47,13 @@ function LoginInner() {
               d="M43.611 20.083H42V20H24v8h11.303a12.05 12.05 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.651-.389-3.917z"
             />
           </svg>
-          Continue with Google
+          {busy ? "Redirecting to Google…" : "Continue with Google"}
         </button>
         {error ? (
           <p className={styles.err}>
             Sign-in failed ({error}). Check your Google OAuth settings and try again.
           </p>
         ) : null}
-        <p className={styles.hint}>
-          Authorized redirect URI for local dev:{" "}
-          <code>http://localhost:3000/api/auth/callback/google</code>
-        </p>
       </div>
     </div>
   );
@@ -65,7 +63,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className={styles.loginWrap}>
+        <div className={styles.page}>
           <p className={styles.subtitle}>Loading…</p>
         </div>
       }
