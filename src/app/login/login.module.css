@@ -50,6 +50,7 @@
   color: #0f172a;
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .googleBtn:hover:not(:disabled) {

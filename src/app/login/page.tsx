@@ -1,15 +1,14 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 import styles from "./login.module.css";
 
 function LoginInner() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || searchParams.get("next") || "/";
   const error = searchParams.get("error");
-  const [busy, setBusy] = useState(false);
+  const signInHref = `/api/auth/google?next=${encodeURIComponent(callbackUrl)}`;
 
   return (
     <div className={styles.page}>
@@ -20,15 +19,7 @@ function LoginInner() {
           Continue to the translator, wiki, flashcards, and insights. You stay on this page until you
           choose Google sign-in below.
         </p>
-        <button
-          type="button"
-          className={styles.googleBtn}
-          disabled={busy}
-          onClick={() => {
-            setBusy(true);
-            void signIn("google", { callbackUrl });
-          }}
-        >
+        <a className={styles.googleBtn} href={signInHref}>
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
             <path
               fill="#FFC107"
@@ -47,21 +38,11 @@ function LoginInner() {
               d="M43.611 20.083H42V20H24v8h11.303a12.05 12.05 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.651-.389-3.917z"
             />
           </svg>
-          {busy ? "Redirecting to Google…" : "Continue with Google"}
-        </button>
+          Continue with Google
+        </a>
         {error ? (
           <p className={styles.err}>
-            Sign-in failed ({error}).
-            {error === "OAuthCallback" ? (
-              <>
-                {" "}
-                On Vercel, set <code>NEXTAUTH_SECRET</code>, <code>GOOGLE_CLIENT_ID</code>, and{" "}
-                <code>GOOGLE_CLIENT_SECRET</code> under Project → Settings → Environment Variables,
-                then redeploy. Visit <code>/api/auth/status</code> to verify.
-              </>
-            ) : (
-              <> Check your Google OAuth settings and try again.</>
-            )}
+            Sign-in failed ({error}). Check your Google OAuth settings and try again.
           </p>
         ) : null}
       </div>

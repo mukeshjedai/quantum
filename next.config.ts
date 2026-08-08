@@ -14,15 +14,6 @@ const backendApiRewrites = [
 ];
 
 const nextConfig: NextConfig = {
-  async redirects() {
-    return [
-      {
-        source: "/api/auth/signin",
-        destination: "/login",
-        permanent: false,
-      },
-    ];
-  },
   async rewrites() {
     return [
       ...backendApiRewrites,

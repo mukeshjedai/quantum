@@ -1,7 +1,6 @@
-import { getAuthSecret } from "@/lib/auth-env";
-import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { AUTH_COOKIE, parseAuthToken } from "@/lib/server-auth";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -10,8 +9,8 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = await getToken({ req, secret: getAuthSecret() });
-  if (token) {
+  const token = req.cookies.get(AUTH_COOKIE)?.value;
+  if (token && (await parseAuthToken(token))) {
     return NextResponse.next();
   }
 

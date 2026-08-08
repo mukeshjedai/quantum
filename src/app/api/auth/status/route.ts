@@ -1,4 +1,4 @@
-import { authEnvReady, getAuthSecret, getGoogleClientId, getGoogleClientSecret } from "@/lib/auth-env";
+import { authEnvReady } from "@/lib/auth-env";
 
 export const dynamic = "force-dynamic";
 
@@ -6,9 +6,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   return Response.json({
     ready: authEnvReady(),
-    hasSecret: Boolean(getAuthSecret()),
-    hasClientId: Boolean(getGoogleClientId()),
-    hasClientSecret: Boolean(getGoogleClientSecret()),
+    mode: "signed-cookie",
     nextAuthUrl: process.env.NEXTAUTH_URL?.trim() || null,
     vercelUrl: process.env.VERCEL_URL?.trim() || null,
   });

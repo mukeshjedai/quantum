@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import styles from "./SiteNav.module.css";
 import WikiSearch from "./WikiSearch";
+import { useAuth } from "@/lib/use-auth";
 import {
   loadWikiPanelOpen,
   setWikiPanelOpen,
@@ -45,7 +45,7 @@ function isWikiArea(pathname: string) {
 
 export default function SiteNav() {
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const { user, loading, signOut } = useAuth();
   const onWiki = isWikiArea(pathname);
   const onLogin = pathname === "/login";
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -59,6 +59,8 @@ export default function SiteNav() {
     window.addEventListener(WIKI_PANEL_EVENT, onPanel);
     return () => window.removeEventListener(WIKI_PANEL_EVENT, onPanel);
   }, [onWiki]);
+
+  const signInHref = `/api/auth/google?next=${encodeURIComponent(pathname || "/")}`;
 
   return (
     <header className={styles.nav} role="banner">
@@ -97,29 +99,29 @@ export default function SiteNav() {
           </div>
         ) : null}
         <div className={styles.auth}>
-          {status === "loading" ? (
+          {loading ? (
             <span className={styles.authMuted}>…</span>
-          ) : session?.user ? (
+          ) : user ? (
             <>
-              {session.user.image ? (
+              {user.picture ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={session.user.image}
+                  src={user.picture}
                   alt=""
                   className={styles.avatar}
                   width={28}
                   height={28}
                 />
               ) : null}
-              <span className={styles.authName}>{session.user.name || session.user.email}</span>
-              <button type="button" className={styles.authBtn} onClick={() => void signOut({ callbackUrl: "/login" })}>
+              <span className={styles.authName}>{user.name || user.email}</span>
+              <button type="button" className={styles.authBtn} onClick={signOut}>
                 Sign out
               </button>
             </>
           ) : (
-            <button type="button" className={styles.authBtn} onClick={() => void signIn("google", { callbackUrl: pathname || "/" })}>
+            <Link className={styles.authBtn} href={signInHref}>
               Sign in
-            </button>
+            </Link>
           )}
         </div>
       </div>
