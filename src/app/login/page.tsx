@@ -1,14 +1,26 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 import styles from "./login.module.css";
 
 function LoginInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || searchParams.get("next") || "/";
   const error = searchParams.get("error");
   const signInHref = `/api/auth/google?next=${encodeURIComponent(callbackUrl)}`;
+
+  useEffect(() => {
+    void fetch("/api/auth/session")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { user?: unknown } | null) => {
+        if (data?.user) {
+          router.replace(callbackUrl);
+        }
+      })
+      .catch(() => undefined);
+  }, [callbackUrl, router]);
 
   return (
     <div className={styles.page}>

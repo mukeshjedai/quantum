@@ -3,7 +3,7 @@ import {
   createAuthToken,
   exchangeGoogleCode,
   parseOAuthState,
-  safeNextPath,
+  postLoginRedirectUrl,
   setAuthCookie,
 } from "@/lib/server-auth";
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   try {
     const user = await exchangeGoogleCode(request, code);
     const token = await createAuthToken(user);
-    const response = NextResponse.redirect(new URL(safeNextPath(next), request.url));
+    const response = NextResponse.redirect(postLoginRedirectUrl(next));
     setAuthCookie(response, token);
     return response;
   } catch (err) {

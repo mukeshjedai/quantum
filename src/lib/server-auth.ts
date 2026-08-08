@@ -37,7 +37,7 @@ export function authBaseUrl(request: NextRequest): string {
   return "http://localhost:3000";
 }
 
-export function googleRedirectUri(_request?: NextRequest): string {
+export function googleRedirectUri(): string {
   const base = process.env.NEXTAUTH_URL?.trim().replace(/\/$/, "");
   if (base) {
     return `${base}/api/auth/callback/google`;
@@ -74,26 +74,39 @@ export async function parseOAuthState(
 }
 
 export async function createAuthToken(user: AuthUser): Promise<string> {
-  return new SignJWT({ ...user })
+  return new SignJWT({
+    sub: user.sub,
+    email: user.email,
+    name: user.name,
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("30d")
     .sign(secretKey());
 }
 
-export async function parseAuthToken(token: string): Promise<AuthUser | null> {
+export async function parseAuthToken(
+  token: string,
+  secret?: Uint8Array,
+): Promise<AuthUser | null> {
   try {
-    const { payload } = await jwtVerify(token, secretKey(), { maxTokenAge: "30d" });
+    const { payload } = await jwtVerify(token, secret ?? secretKey());
     const email = payload.email;
     if (typeof email !== "string" || !email) return null;
     return {
       sub: String(payload.sub || email),
       email,
       name: String(payload.name || email),
-      picture: String(payload.picture || ""),
+      picture: "",
     };
   } catch {
     return null;
   }
+}
+
+/** Absolute post-login URL (must match NEXTAUTH_URL domain for cookies). */
+export function postLoginRedirectUrl(next: string): string {
+  const base = process.env.NEXTAUTH_URL?.trim().replace(/\/$/, "") || "http://localhost:3000";
+  return `${base}${safeNextPath(next)}`;
 }
 
 export async function getAuthUser(request: NextRequest): Promise<AuthUser | null> {
@@ -125,7 +138,7 @@ export function clearAuthCookie(response: NextResponse): void {
 export function buildGoogleAuthUrl(request: NextRequest, state: string): string {
   const params = new URLSearchParams({
     client_id: getGoogleClientId(),
-    redirect_uri: googleRedirectUri(request),
+    redirect_uri: googleRedirectUri(),
     response_type: "code",
     scope: "openid email profile",
     state,
@@ -143,7 +156,7 @@ export async function exchangeGoogleCode(
     code,
     client_id: getGoogleClientId(),
     client_secret: getGoogleClientSecret(),
-    redirect_uri: googleRedirectUri(request),
+    redirect_uri: googleRedirectUri(),
     grant_type: "authorization_code",
   });
   const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
