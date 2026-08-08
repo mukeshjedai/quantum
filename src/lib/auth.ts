@@ -1,7 +1,6 @@
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import {
-  authEnvReady,
   getAuthSecret,
   getGoogleClientId,
   getGoogleClientSecret,
@@ -11,10 +10,13 @@ const secret = getAuthSecret();
 
 export const authOptions: NextAuthOptions = {
   secret,
+  useSecureCookies: process.env.NEXTAUTH_URL?.startsWith("https://") ?? false,
   providers: [
     GoogleProvider({
       clientId: getGoogleClientId(),
       clientSecret: getGoogleClientSecret(),
+      // Web client with secret — state-only avoids PKCE cookie loss on Vercel.
+      checks: ["state"],
       authorization: {
         params: {
           prompt: "select_account",
@@ -29,9 +31,6 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    signIn() {
-      return authEnvReady();
-    },
     jwt({ token, account, profile }) {
       if (account) {
         token.provider = account.provider;
