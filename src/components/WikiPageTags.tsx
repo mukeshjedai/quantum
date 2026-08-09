@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./WikiPageTags.module.css";
 import { parseApiError } from "@/lib/api";
 
@@ -13,9 +14,17 @@ function normalizeInput(raw: string): string {
   return raw.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+function tagFilterHref(tag: string): string {
+  return `/wiki?tag=${encodeURIComponent(tag)}`;
+}
+
 export default function WikiPageTags({ pageId, initialTags }: WikiPageTagsProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [tags, setTags] = useState<string[]>(initialTags);
   const [draft, setDraft] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -42,11 +51,46 @@ export default function WikiPageTags({ pageId, initialTags }: WikiPageTagsProps)
     [pageId],
   );
 
-  const addTag = async () => {
-    const tag = normalizeInput(draft);
+  useEffect(() => {
+    const normalized = normalizeInput(draft);
+    if (!normalized) {
+      setSuggestions([]);
+      setSuggestOpen(false);
+      return;
+    }
+    const t = window.setTimeout(() => {
+      void fetch(`/api/wiki/tags?q=${encodeURIComponent(normalized)}&limit=8`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: { tags?: string[] } | null) => {
+          const items = (data?.tags || []).filter((tag) => !tags.includes(tag));
+          setSuggestions(items);
+          setSuggestOpen(items.length > 0);
+          setActiveIdx(-1);
+        })
+        .catch(() => {
+          setSuggestions([]);
+          setSuggestOpen(false);
+        });
+    }, 180);
+    return () => window.clearTimeout(t);
+  }, [draft, tags]);
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setSuggestOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  const applyDraft = async (value: string) => {
+    const tag = normalizeInput(value);
     if (!tag) return;
     if (tags.includes(tag)) {
       setDraft("");
+      setSuggestOpen(false);
       return;
     }
     if (tags.length >= 32) {
@@ -57,7 +101,12 @@ export default function WikiPageTags({ pageId, initialTags }: WikiPageTagsProps)
     const next = [...tags, tag];
     setTags(next);
     setDraft("");
+    setSuggestOpen(false);
     await persist(next, rollback);
+  };
+
+  const addTag = async () => {
+    await applyDraft(draft);
   };
 
   const removeTag = async (tag: string) => {
@@ -67,6 +116,33 @@ export default function WikiPageTags({ pageId, initialTags }: WikiPageTagsProps)
     await persist(next, rollback);
   };
 
+  const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown") {
+      if (!suggestOpen || !suggestions.length) return;
+      e.preventDefault();
+      setActiveIdx((i) => Math.min(i + 1, suggestions.length - 1));
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      if (!suggestOpen || !suggestions.length) return;
+      e.preventDefault();
+      setActiveIdx((i) => Math.max(i - 1, 0));
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIdx >= 0 && suggestions[activeIdx]) {
+        void applyDraft(suggestions[activeIdx]);
+      } else {
+        void addTag();
+      }
+      return;
+    }
+    if (e.key === "Escape") {
+      setSuggestOpen(false);
+    }
+  };
+
   return (
     <div className={styles.root}>
       <div className={styles.row}>
@@ -74,7 +150,9 @@ export default function WikiPageTags({ pageId, initialTags }: WikiPageTagsProps)
         <div className={styles.tags}>
           {tags.map((tag) => (
             <span key={tag} className={styles.tag}>
-              {tag}
+              <Link href={tagFilterHref(tag)} className={styles.tagLink} title={`Show all pages tagged “${tag}”`}>
+                {tag}
+              </Link>
               <button
                 type="button"
                 className={styles.remove}
@@ -89,22 +167,44 @@ export default function WikiPageTags({ pageId, initialTags }: WikiPageTagsProps)
           {tags.length === 0 ? <span className={styles.empty}>No tags yet</span> : null}
         </div>
       </div>
-      <div className={styles.addRow}>
-        <input
-          type="text"
-          className={styles.input}
-          placeholder="Add tag…"
-          value={draft}
-          disabled={busy}
-          maxLength={48}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              void addTag();
-            }
-          }}
-        />
+      <div className={styles.addRow} ref={rootRef}>
+        <div className={styles.inputWrap}>
+          <input
+            type="text"
+            className={styles.input}
+            placeholder="Add tag…"
+            value={draft}
+            disabled={busy}
+            maxLength={48}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              setSuggestOpen(true);
+            }}
+            onFocus={() => {
+              if (suggestions.length) setSuggestOpen(true);
+            }}
+            onKeyDown={onInputKeyDown}
+            aria-autocomplete="list"
+            aria-expanded={suggestOpen}
+            aria-controls="wiki-tag-suggestions"
+          />
+          {suggestOpen && suggestions.length ? (
+            <ul id="wiki-tag-suggestions" className={styles.suggestList} role="listbox">
+              {suggestions.map((tag, idx) => (
+                <li key={tag} role="option" aria-selected={idx === activeIdx}>
+                  <button
+                    type="button"
+                    className={`${styles.suggestItem} ${idx === activeIdx ? styles.suggestItemActive : ""}`}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => void applyDraft(tag)}
+                  >
+                    {tag}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
         <button type="button" className={styles.addBtn} onClick={() => void addTag()} disabled={busy}>
           Add
         </button>

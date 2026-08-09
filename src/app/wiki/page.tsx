@@ -3,31 +3,52 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import type { WikiListItem } from "@/lib/types";
+
+function pageTypeLabel(pageType?: string, videoId?: string) {
+  if (pageType === "post_notes") return "Post notes";
+  if (pageType === "manual") return "Paste notes";
+  if (pageType === "html_app") return "Interactive HTML";
+  if (pageType === "html") return "HTML page";
+  if (videoId) return `Video: ${videoId}`;
+  return "Wiki page";
+}
 
 function WikiIndexInner() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") || "";
+  const tag = searchParams.get("tag") || "";
   const [query, setQuery] = useState(q);
-  const [results, setResults] = useState<
-    { id: string; title?: string; page_type?: string; video_id?: string; summary?: string; created_at?: string }[]
-  >([]);
+  const [results, setResults] = useState<WikiListItem[]>([]);
   const [backend, setBackend] = useState("");
   const [err, setErr] = useState("");
+  const [activeTag, setActiveTag] = useState("");
 
   useEffect(() => {
-    if (!q) {
+    setQuery(q);
+  }, [q]);
+
+  useEffect(() => {
+    if (!q && !tag) {
       setResults([]);
+      setActiveTag("");
       return;
     }
-    fetch(`/api/wiki/list?q=${encodeURIComponent(q)}&limit=50`)
+    const params = new URLSearchParams({ limit: "50" });
+    if (q.trim()) params.set("q", q.trim());
+    if (tag.trim()) params.set("tag", tag.trim());
+    fetch(`/api/wiki/list?${params}`)
       .then((r) => r.json())
       .then((data) => {
         setResults(data.items || []);
         setBackend(data.backend || "");
+        setActiveTag(data.tag || tag.trim());
         setErr(data.warning || "");
       })
       .catch((e) => setErr(String(e)));
-  }, [q]);
+  }, [q, tag]);
+
+  const showResults = Boolean(q || tag);
 
   return (
     <div className="wrap">
@@ -48,7 +69,11 @@ function WikiIndexInner() {
         className="card"
         onSubmit={(e) => {
           e.preventDefault();
-          window.location.href = `/wiki?q=${encodeURIComponent(query)}`;
+          const params = new URLSearchParams();
+          if (query.trim()) params.set("q", query.trim());
+          if (tag.trim()) params.set("tag", tag.trim());
+          const suffix = params.toString() ? `?${params.toString()}` : "";
+          window.location.href = `/wiki${suffix}`;
         }}
       >
         <label htmlFor="wiki-search">Search wiki pages</label>
@@ -61,11 +86,18 @@ function WikiIndexInner() {
         <button type="submit">Search</button>
       </form>
 
-      {q ? (
+      {showResults ? (
         <>
-          <h2 style={{ margin: "1.5rem 0 0.5rem", fontSize: "1rem", fontWeight: 650 }}>
-            Search results
-          </h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "1.5rem 0 0.5rem", flexWrap: "wrap" }}>
+            <h2 style={{ margin: 0, fontSize: "1rem", fontWeight: 650 }}>
+              {activeTag ? `Pages tagged “${activeTag}”` : "Search results"}
+            </h2>
+            {activeTag ? (
+              <Link href={q ? `/wiki?q=${encodeURIComponent(q)}` : "/wiki"} className="muted" style={{ fontSize: "0.85rem" }}>
+                Clear tag filter
+              </Link>
+            ) : null}
+          </div>
           {!results.length ? <p className="muted">No wiki pages found.</p> : null}
           {results.map((r) => (
             <div key={r.id} className="card">
@@ -75,17 +107,28 @@ function WikiIndexInner() {
                 </strong>
                 <span className="muted">{r.created_at}</span>
               </div>
-              <div className="muted">
-                {r.page_type === "post_notes"
-                  ? "Post notes"
-                  : r.page_type === "manual"
-                    ? "Paste notes"
-                    : r.page_type === "html_app"
-                      ? "Interactive HTML"
-                      : r.page_type === "html"
-                        ? "HTML page"
-                        : `Video: ${r.video_id}`}
-              </div>
+              <div className="muted">{pageTypeLabel(r.page_type, r.video_id)}</div>
+              {r.tags?.length ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginTop: "0.45rem" }}>
+                  {r.tags.map((t) => (
+                    <Link
+                      key={t}
+                      href={`/wiki?tag=${encodeURIComponent(t)}`}
+                      style={{
+                        display: "inline-block",
+                        padding: "0.15rem 0.5rem",
+                        borderRadius: 999,
+                        background: "#000",
+                        color: "#fff",
+                        fontSize: "0.75rem",
+                        textDecoration: "none",
+                      }}
+                    >
+                      {t}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
               <p style={{ margin: "0.5rem 0 0" }}>{r.summary}</p>
             </div>
           ))}
