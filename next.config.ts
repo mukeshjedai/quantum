@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
-const apiBase = process.env.APPLIMIT_API_URL || "http://localhost:7071";
+const apiBase = process.env.APPLIMIT_API_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://applimit-func-97195.azurewebsites.net"
+    : "http://localhost:7071");
 
 /** Proxy backend API paths only — never /api/auth (NextAuth runs on Vercel). */
 const backendApiRewrites = [
