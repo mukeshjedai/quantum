@@ -71,10 +71,9 @@ export default function WikiContent({
             const data = await res.json();
             markdown = data.markdown || content;
           }
-          const { createWikiMarkdown } = await loadWikiEmbed();
+          const { renderWikiMarkdown } = await loadWikiEmbed();
           if (cancelled) return;
-          const md = await createWikiMarkdown();
-          root.innerHTML = md.render(markdown);
+          root.innerHTML = await renderWikiMarkdown(markdown);
         }
       } catch (e) {
         if (!cancelled && errRef.current) {

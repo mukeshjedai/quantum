@@ -7,6 +7,7 @@ type PostNotesModule = {
 
 type EmbedModule = {
   createWikiMarkdown: () => Promise<{ render: (src: string) => string }>;
+  renderWikiMarkdown: (markdown: string) => Promise<string>;
 };
 
 /**
