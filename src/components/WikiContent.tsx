@@ -20,10 +20,14 @@ type PendingAnchor = {
   contextBefore: string;
   contextAfter: string;
   tooltipText: string;
+  caretRatio: number;
   range: Range;
 };
 
-function caretContext(event: globalThis.MouseEvent): Omit<PendingAnchor, "selection"> | null {
+function caretContext(
+  event: globalThis.MouseEvent,
+  root: HTMLElement,
+): Omit<PendingAnchor, "selection"> | null {
   const documentWithCaret = document as Document & {
     caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
     caretRangeFromPoint?: (x: number, y: number) => Range | null;
@@ -35,10 +39,15 @@ function caretContext(event: globalThis.MouseEvent): Omit<PendingAnchor, "select
   if (node?.nodeType !== Node.TEXT_NODE) return null;
   const text = node.nodeValue ?? "";
   if (!text) return null;
+  const prefix = document.createRange();
+  prefix.selectNodeContents(root);
+  prefix.setEnd(node, offset);
+  const totalLength = root.textContent?.length ?? 0;
   return {
     contextBefore: text.slice(Math.max(0, offset - 160), offset),
     contextAfter: text.slice(offset, offset + 160),
     tooltipText: text.trim().slice(0, 240) || "Wiki anchor",
+    caretRatio: totalLength ? prefix.toString().length / totalLength : 0,
     range: (() => {
       const caret = document.createRange();
       caret.setStart(node, offset);
@@ -158,7 +167,7 @@ export default function WikiContent({
     const onClick = (event: globalThis.MouseEvent) => {
       if (event.button !== 0 || Date.now() > armedUntilRef.current) return;
       const selected = selectionRef.current;
-      const context = selected ? null : caretContext(event);
+      const context = selected ? null : caretContext(event, root);
       if (!selected && !context) {
         setAnchorStatus("Click directly beside text in the page.");
         return;
@@ -171,6 +180,7 @@ export default function WikiContent({
         contextBefore: context?.contextBefore ?? "",
         contextAfter: context?.contextAfter ?? "",
         tooltipText: selected || context?.tooltipText || "Wiki anchor",
+        caretRatio: context?.caretRatio ?? 0,
         range: selected && selectionRangeRef.current
           ? (() => {
               const range = selectionRangeRef.current!.cloneRange();
@@ -206,12 +216,26 @@ export default function WikiContent({
           selected_text: pendingAnchor.selection,
           context_before: pendingAnchor.contextBefore,
           context_after: pendingAnchor.contextAfter,
+          caret_ratio: pendingAnchor.caretRatio,
           tooltip_text: anchorTooltip.trim(),
           url: anchorUrl.trim(),
           auto_fallback_local: true,
         }),
       });
-      if (!response.ok) throw new Error(await response.text());
+      if (!response.ok) {
+        let message = `Could not save anchor (${response.status}).`;
+        const text = await response.text();
+        try {
+          const errorBody = JSON.parse(text);
+          if (typeof errorBody?.detail === "string") message = errorBody.detail;
+        } catch {
+          if (text) message = text;
+        }
+        if (response.status === 404) {
+          message = "The anchor API is not deployed yet. Deploy the latest AppLimit backend and try again.";
+        }
+        throw new Error(message);
+      }
       const result = await response.json();
       const link = document.createElement("a");
       link.className = "wiki-anchor-icon";
