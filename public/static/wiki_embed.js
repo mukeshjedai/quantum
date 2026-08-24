@@ -243,6 +243,19 @@ function repairMatrixRows(body) {
   );
 }
 
+/** Repair ordinary parentheses escaped by older server-side paste normalization. */
+export function repairLegacyCodeEscapes(markdown) {
+  return String(markdown || "").replace(
+    /(^|\n)(`{3,}|~{3,})([^\n]*)\n([\s\S]*?)\n\2(?=\n|$)/g,
+    (whole, prefix, fence, info, body) => {
+      const repaired = body
+        .replace(/([A-Za-z_][\w.]*)\\\(/g, "$1(")
+        .replace(/\\\)(?=\s*(?:$|[,.:;*+\-\/]))/gm, ")");
+      return `${prefix}${fence}${info}\n${repaired}\n${fence}`;
+    },
+  );
+}
+
 /** Repair common formatting damage introduced by rich-text/Markdown clipboard copies. */
 export function normalizeLatexForKatex(latex) {
   let output = String(latex || "")
@@ -314,7 +327,7 @@ async function typesetKatexInHtml(html) {
 
 export async function renderWikiMarkdown(markdown) {
   const md = await createWikiMarkdown();
-  const normalized = normalizeChatgptBracketMath(markdown);
+  const normalized = normalizeChatgptBracketMath(repairLegacyCodeEscapes(markdown));
   const { text, blocks } = protectMathDelimiters(normalized);
   const html = restoreMathDelimiters(md.render(text), blocks);
   return typesetKatexInHtml(html);
