@@ -209,6 +209,37 @@ export function normalizeChatgptBracketMath(markdown) {
   return output.join("\n");
 }
 
+function repairMatrixRows(body) {
+  return body.replace(
+    /\\begin\{(bmatrix|pmatrix|matrix|aligned)\}([\s\S]*?)\\end\{\1\}/g,
+    (whole, environment, rawContent) => {
+      let content = rawContent
+        // A copied LaTeX row often loses one of the two trailing backslashes.
+        .replace(/\\[ \t]*\n/g, "\\\\\n")
+        // ChatGPT clipboard output can collapse vectors to 4\3\2.
+        .replace(/\\(?=[+-]?\d)/g, "\\\\");
+
+      // A negative compact vector item may lose the separator entirely:
+      // 0.2\0.1-0.1 -> 0.2\\0.1\\-0.1.
+      if (!content.includes("&") && /\\\\[+-]?\d/.test(content)) {
+        content = content.replace(/(?<=\d)(?=-\d)/g, "\\\\");
+      }
+      return `\\begin{${environment}}${content}\\end{${environment}}`;
+    },
+  );
+}
+
+/** Repair common formatting damage introduced by rich-text/Markdown clipboard copies. */
+export function normalizeLatexForKatex(latex) {
+  let output = String(latex || "")
+    .replace(/^\s*=+\s*$/gm, "")
+    .replace(/\\_/g, "_")
+    .replace(/\\(tanh|sin|cos|tan|log|ln|exp)!/g, "\\$1\\!")
+    .replace(/(\\underbrace\{[\s\S]*?\})\*\{(\\text\{)/g, "$1_{$2");
+  output = repairMatrixRows(output);
+  return output;
+}
+
 /** Hide math from markdown-it so backslash delimiters and _/^ are not stripped. */
 export function protectMathDelimiters(markdown) {
   const blocks = [];
@@ -220,10 +251,10 @@ export function protectMathDelimiters(markdown) {
 
   let text = String(markdown || "");
 
-  text = text.replace(/\$\$([\s\S]*?)\$\$/g, (_, body) => ph(`$$${body}$$`));
-  text = text.replace(/\\\[([\s\S]*?)\\\]/g, (_, body) => ph(`\\[${body}\\]`));
-  text = text.replace(/\\\(([\s\S]*?)\\\)/g, (_, body) => ph(`\\(${body}\\)`));
-  text = text.replace(/(?<!\$)\$(?!\$)([^\$\n]+?)\$/g, (_, body) => ph(`$${body}$`));
+  text = text.replace(/\$\$([\s\S]*?)\$\$/g, (_, body) => ph(`$$${normalizeLatexForKatex(body)}$$`));
+  text = text.replace(/\\\[([\s\S]*?)\\\]/g, (_, body) => ph(`\\[${normalizeLatexForKatex(body)}\\]`));
+  text = text.replace(/\\\(([\s\S]*?)\\\)/g, (_, body) => ph(`\\(${normalizeLatexForKatex(body)}\\)`));
+  text = text.replace(/(?<!\$)\$(?!\$)([^\$\n]+?)\$/g, (_, body) => ph(`$${normalizeLatexForKatex(body)}$`));
 
   return { text, blocks };
 }
