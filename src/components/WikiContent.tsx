@@ -20,6 +20,7 @@ type PendingAnchor = {
   contextBefore: string;
   contextAfter: string;
   tooltipText: string;
+  range: Range;
 };
 
 function caretContext(event: globalThis.MouseEvent): Omit<PendingAnchor, "selection"> | null {
@@ -38,6 +39,12 @@ function caretContext(event: globalThis.MouseEvent): Omit<PendingAnchor, "select
     contextBefore: text.slice(Math.max(0, offset - 160), offset),
     contextAfter: text.slice(offset, offset + 160),
     tooltipText: text.trim().slice(0, 240) || "Wiki anchor",
+    range: (() => {
+      const caret = document.createRange();
+      caret.setStart(node, offset);
+      caret.collapse(true);
+      return caret;
+    })(),
   };
 }
 
@@ -52,8 +59,10 @@ export default function WikiContent({
   const errRef = useRef<HTMLParagraphElement>(null);
   const armedUntilRef = useRef(0);
   const selectionRef = useRef("");
+  const selectionRangeRef = useRef<Range | null>(null);
   const [pendingAnchor, setPendingAnchor] = useState<PendingAnchor | null>(null);
   const [anchorUrl, setAnchorUrl] = useState("");
+  const [anchorTooltip, setAnchorTooltip] = useState("");
   const [anchorStatus, setAnchorStatus] = useState("");
   const [savingAnchor, setSavingAnchor] = useState(false);
 
@@ -133,7 +142,11 @@ export default function WikiContent({
     const onKeyDown = (event: KeyboardEvent) => {
       if (!(event.ctrlKey && event.shiftKey && event.code === "Digit1")) return;
       event.preventDefault();
-      selectionRef.current = window.getSelection()?.toString().trim() ?? "";
+      const selection = window.getSelection();
+      selectionRef.current = selection?.toString().trim() ?? "";
+      selectionRangeRef.current = selectionRef.current && selection?.rangeCount
+        ? selection.getRangeAt(0).cloneRange()
+        : null;
       armedUntilRef.current = Date.now() + 15_000;
       setAnchorStatus(
         selectionRef.current
@@ -158,8 +171,16 @@ export default function WikiContent({
         contextBefore: context?.contextBefore ?? "",
         contextAfter: context?.contextAfter ?? "",
         tooltipText: selected || context?.tooltipText || "Wiki anchor",
+        range: selected && selectionRangeRef.current
+          ? (() => {
+              const range = selectionRangeRef.current!.cloneRange();
+              range.collapse(false);
+              return range;
+            })()
+          : context!.range,
       });
       setAnchorUrl("");
+      setAnchorTooltip(selected || context?.tooltipText || "Wiki anchor");
       setAnchorStatus("");
     };
 
@@ -185,15 +206,24 @@ export default function WikiContent({
           selected_text: pendingAnchor.selection,
           context_before: pendingAnchor.contextBefore,
           context_after: pendingAnchor.contextAfter,
-          tooltip_text: pendingAnchor.tooltipText,
+          tooltip_text: anchorTooltip.trim(),
           url: anchorUrl.trim(),
           auto_fallback_local: true,
         }),
       });
       if (!response.ok) throw new Error(await response.text());
-      setAnchorStatus("Anchor saved. Refreshing…");
+      const result = await response.json();
+      const link = document.createElement("a");
+      link.className = "wiki-anchor-icon";
+      link.href = String(result.anchor_url || anchorUrl.trim());
+      link.title = String(result.tooltip || anchorTooltip.trim() || "Linked page");
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "↗";
+      pendingAnchor.range.insertNode(link);
+      setAnchorStatus("Anchor saved. You can create another anchor now.");
       setPendingAnchor(null);
-      window.setTimeout(() => window.location.reload(), 350);
+      setAnchorUrl("");
     } catch (error) {
       setAnchorStatus(error instanceof Error ? error.message : String(error));
     } finally {
@@ -216,7 +246,19 @@ export default function WikiContent({
           <form className={styles.anchorModal} onSubmit={saveAnchor}>
             <h2>Insert link anchor</h2>
             <p>Paste the URL to attach at the clicked text position.</p>
-            <p className={styles.anchorTooltip}>Tooltip: {pendingAnchor.tooltipText}</p>
+            <label className={styles.anchorLabel}>
+              Tooltip text
+              <input
+                type="text"
+                required
+                maxLength={240}
+                value={anchorTooltip}
+                onChange={(event) => setAnchorTooltip(event.target.value)}
+                placeholder="Text shown when hovering over the anchor"
+              />
+            </label>
+            <label className={styles.anchorLabel}>
+              URL
             <input
               type="url"
               required
@@ -225,6 +267,7 @@ export default function WikiContent({
               onChange={(event) => setAnchorUrl(event.target.value)}
               placeholder="https://example.com/page"
             />
+            </label>
             <div className={styles.anchorActions}>
               <button type="button" onClick={() => setPendingAnchor(null)}>Cancel</button>
               <button type="submit" disabled={savingAnchor}>
