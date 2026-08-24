@@ -178,6 +178,20 @@ function looksLikeDisplayMath(value) {
   );
 }
 
+export function wikiAnchorIconPlugin(md) {
+  md.core.ruler.after("inline", "wiki_anchor_icon", (state) => {
+    for (const block of state.tokens) {
+      if (block.type !== "inline" || !block.children) continue;
+      const children = block.children;
+      for (let index = 0; index < children.length - 1; index += 1) {
+        if (children[index].type === "link_open" && children[index + 1].type === "text" && children[index + 1].content === "↗") {
+          children[index].attrJoin("class", "wiki-anchor-icon");
+        }
+      }
+    }
+  });
+}
+
 /** Convert ChatGPT's standalone [ ... ] blocks without consuming inner brackets. */
 export function normalizeChatgptBracketMath(markdown) {
   const lines = String(markdown || "").replace(/\r\n?/g, "\n").split("\n");
@@ -309,7 +323,8 @@ export async function renderWikiMarkdown(markdown) {
 export async function createWikiMarkdown() {
   const markdownit = (await import("https://esm.sh/markdown-it@14.1.0")).default;
   return markdownit({ html: false, linkify: true, breaks: true })
-    .use(wikiEmbedPlugin);
+    .use(wikiEmbedPlugin)
+    .use(wikiAnchorIconPlugin);
 }
 
 export function buildVideoEmbedMarkdown(url) {

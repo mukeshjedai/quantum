@@ -66,6 +66,7 @@ export default async function WikiPageView({
         <WikiContent
           content={String(data.body_markdown ?? page.body_raw ?? "")}
           pageType="manual"
+          pageId={page.id}
         />
       </div>
     );

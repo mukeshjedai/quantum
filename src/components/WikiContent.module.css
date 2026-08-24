@@ -70,6 +70,63 @@
   height: auto;
 }
 
+.wikiContent :global(.wiki-anchor-icon) {
+  display: inline-block;
+  margin-left: 0.12em;
+  font-size: 0.7em;
+  line-height: 1;
+  vertical-align: super;
+  text-decoration: none;
+}
+
+.anchorToast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1001;
+  max-width: min(420px, calc(100vw - 36px));
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: #fff;
+  background: #5b21b6;
+  box-shadow: 0 8px 24px #0005;
+}
+
+.anchorOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #0008;
+}
+
+.anchorModal {
+  width: min(520px, 100%);
+  padding: 18px;
+  border-radius: 12px;
+  color: #111;
+  background: #fff;
+  box-shadow: 0 20px 60px #0008;
+}
+
+.anchorModal h2 { margin: 0 0 8px; }
+.anchorModal p { margin: 6px 0; }
+.anchorModal input {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid #999;
+  border-radius: 7px;
+  font: inherit;
+}
+.anchorTooltip { color: #555; overflow-wrap: anywhere; }
+.anchorActions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.anchorActions button { padding: 8px 12px; border: 1px solid #777; border-radius: 7px; cursor: pointer; }
+.anchorActions button[type="submit"] { color: #fff; background: #5b21b6; border-color: #5b21b6; }
+
 /* KaTeX display math spacing */
 .wikiContent .katex-display {
   margin: 1em 0;
