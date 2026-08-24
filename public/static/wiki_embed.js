@@ -168,6 +168,47 @@ export function wikiEmbedPlugin(md) {
 
 const MATH_PH_PREFIX = "APPLIMITMATH";
 
+function looksLikeDisplayMath(value) {
+  const text = String(value || "").trim();
+  return (
+    /\\[a-zA-Z]+/.test(text) ||
+    /[_^=]/.test(text) ||
+    /[a-zA-Z]\s*\([^)]*\)/.test(text) ||
+    /\\rightarrow|\\leftarrow/.test(text)
+  );
+}
+
+/** Convert ChatGPT's standalone [ ... ] blocks without consuming inner brackets. */
+export function normalizeChatgptBracketMath(markdown) {
+  const lines = String(markdown || "").replace(/\r\n?/g, "\n").split("\n");
+  const output = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    if (lines[index].trim() !== "[") {
+      output.push(lines[index]);
+      continue;
+    }
+
+    let closeIndex = index + 1;
+    while (closeIndex < lines.length && lines[closeIndex].trim() !== "]") {
+      closeIndex += 1;
+    }
+    if (closeIndex >= lines.length) {
+      output.push(lines[index]);
+      continue;
+    }
+
+    const inner = lines.slice(index + 1, closeIndex).join("\n").trim();
+    if (!looksLikeDisplayMath(inner)) {
+      output.push(...lines.slice(index, closeIndex + 1));
+      index = closeIndex;
+      continue;
+    }
+    output.push("\\[", inner, "\\]");
+    index = closeIndex;
+  }
+  return output.join("\n");
+}
+
 /** Hide math from markdown-it so backslash delimiters and _/^ are not stripped. */
 export function protectMathDelimiters(markdown) {
   const blocks = [];
@@ -228,7 +269,8 @@ async function typesetKatexInHtml(html) {
 
 export async function renderWikiMarkdown(markdown) {
   const md = await createWikiMarkdown();
-  const { text, blocks } = protectMathDelimiters(markdown);
+  const normalized = normalizeChatgptBracketMath(markdown);
+  const { text, blocks } = protectMathDelimiters(normalized);
   const html = restoreMathDelimiters(md.render(text), blocks);
   return typesetKatexInHtml(html);
 }
