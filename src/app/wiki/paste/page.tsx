@@ -79,6 +79,43 @@ function PasteNotesEditorInner() {
     }
   };
 
+  const createWikiFromHtml = async (file: File) => {
+    setBusy(true);
+    setErr("");
+    setStatus("Reading HTML file…");
+    const folderEl = document.getElementById("wiki-folder") as HTMLSelectElement | null;
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const previewResponse = await fetch("/api/wiki/html/preview", {
+        method: "POST",
+        body: form,
+      });
+      if (!previewResponse.ok) {
+        throw new Error(parseApiError(await previewResponse.text()));
+      }
+      const parsed = await previewResponse.json();
+      setStatus("Creating wiki page…");
+      const saveResponse = await fetch("/api/wiki/html/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: String(parsed.title || "").trim() || file.name.replace(/\.html?$/i, ""),
+          body_html: parsed.body_html || "",
+          filename: parsed.filename || file.name,
+          folder_id: folderEl?.value || null,
+        }),
+      });
+      if (!saveResponse.ok) throw new Error(parseApiError(await saveResponse.text()));
+      const created = await saveResponse.json();
+      window.location.href = created.url;
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "HTML wiki creation failed");
+      setStatus("");
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="wrap">
       <h1>{editId ? "Edit paste notes" : "Paste notes"}</h1>
@@ -102,6 +139,7 @@ function PasteNotesEditorInner() {
           disabled={busy}
           onStatus={setStatus}
           onError={setErr}
+          onHtmlFile={createWikiFromHtml}
         />
         {!editId ? <WikiFolderSelect /> : null}
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.55rem" }}>

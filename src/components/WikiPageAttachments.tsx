@@ -18,6 +18,8 @@ type WikiPageAttachmentsProps = {
   onInsertLink?: (markdown: string) => void;
   disabled?: boolean;
   compact?: boolean;
+  /** When supplied, HTML files create wiki pages instead of becoming attachments. */
+  onHtmlFile?: (file: File) => Promise<void>;
 };
 
 export default function WikiPageAttachments({
@@ -27,6 +29,7 @@ export default function WikiPageAttachments({
   onInsertLink,
   disabled = false,
   compact = false,
+  onHtmlFile,
 }: WikiPageAttachmentsProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
@@ -43,6 +46,11 @@ export default function WikiPageAttachments({
         const uploaded: WikiAttachment[] = [];
         for (let i = 0; i < files.length; i += 1) {
           const file = files[i];
+          const isHtml = file.type === "text/html" || /\.html?$/i.test(file.name);
+          if (isHtml && onHtmlFile) {
+            await onHtmlFile(file);
+            continue;
+          }
           const result = await uploadWikiFile(file, pageId || undefined);
           uploaded.push(result);
           if (onInsertLink && result.markdown) onInsertLink(result.markdown);
@@ -54,7 +62,7 @@ export default function WikiPageAttachments({
         setBusy(false);
       }
     },
-    [attachments, busy, disabled, onChange, onInsertLink, pageId],
+    [attachments, busy, disabled, onChange, onHtmlFile, onInsertLink, pageId],
   );
 
   const onDragOver = (e: React.DragEvent) => {

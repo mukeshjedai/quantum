@@ -35,6 +35,7 @@ type PasteNotesBodyEditorProps = {
   disabled?: boolean;
   onStatus?: (message: string) => void;
   onError?: (message: string) => void;
+  onHtmlFile?: (file: File) => Promise<void>;
 };
 
 type FocusState = {
@@ -53,6 +54,7 @@ export default function PasteNotesBodyEditor({
   disabled = false,
   onStatus,
   onError,
+  onHtmlFile,
 }: PasteNotesBodyEditorProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const imageInputId = useId();
@@ -291,11 +293,12 @@ export default function PasteNotesBodyEditor({
         onInsertLink={insertAttachmentLink}
         disabled={disabled || uploading}
         compact
+        onHtmlFile={onHtmlFile}
       />
 
       <p className={styles.hint}>
         Drag and drop images or files anywhere in the editor. Images show inline with resize controls;
-        other files are stored on the page and linked in your notes.
+        HTML files selected with Upload file create a new wiki page; other files are stored and linked.
       </p>
     </div>
   );
