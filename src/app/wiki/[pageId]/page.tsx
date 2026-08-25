@@ -101,6 +101,7 @@ export default async function WikiPageView({
         <iframe
           title={page.title || "HTML app"}
           src={data.document_url}
+          sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads"
           style={{ width: "100%", height: "calc(100vh - 140px)", border: "1px solid #e2e8f0", borderRadius: 8 }}
         />
       </div>

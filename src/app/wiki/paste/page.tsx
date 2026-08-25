@@ -82,27 +82,41 @@ function PasteNotesEditorInner() {
   const createWikiFromHtml = async (file: File) => {
     setBusy(true);
     setErr("");
-    setStatus("Reading HTML file…");
+    setStatus("Preparing HTML upload…");
     const folderEl = document.getElementById("wiki-folder") as HTMLSelectElement | null;
     try {
-      const form = new FormData();
-      form.append("file", file);
-      const previewResponse = await fetch("/api/wiki/html/preview", {
-        method: "POST",
-        body: form,
-      });
-      if (!previewResponse.ok) {
-        throw new Error(parseApiError(await previewResponse.text()));
-      }
-      const parsed = await previewResponse.json();
-      setStatus("Creating wiki page…");
-      const saveResponse = await fetch("/api/wiki/html/save", {
+      const prepareResponse = await fetch("/api/wiki/html-app/prepare-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: String(parsed.title || "").trim() || file.name.replace(/\.html?$/i, ""),
-          body_html: parsed.body_html || "",
-          filename: parsed.filename || file.name,
+          filename: file.name,
+          file_size: file.size,
+          kind: "general",
+        }),
+      });
+      if (!prepareResponse.ok) {
+        throw new Error(parseApiError(await prepareResponse.text()));
+      }
+      const prepared = await prepareResponse.json();
+      if (!prepared.upload_url) throw new Error("Direct HTML upload is unavailable.");
+
+      setStatus("Uploading original HTML…");
+      const uploadResponse = await fetch(prepared.upload_url, {
+        method: "PUT",
+        headers: { "x-ms-blob-type": "BlockBlob", "Content-Type": "text/html" },
+        body: file,
+      });
+      if (!uploadResponse.ok) throw new Error("HTML file upload failed.");
+
+      setStatus("Creating embedded wiki page…");
+      const saveResponse = await fetch("/api/wiki/html-app/finalize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          page_id: prepared.page_id,
+          title: "",
+          filename: file.name,
+          kind: "general",
           folder_id: folderEl?.value || null,
         }),
       });
