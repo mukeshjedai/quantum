@@ -6,6 +6,7 @@ import WikiContent from "@/components/WikiContent";
 import WikiPageFilesPanel from "@/components/WikiPageFilesPanel";
 import WikiPageTags from "@/components/WikiPageTags";
 import StaticHtmlWikiEmbed from "@/components/StaticHtmlWikiEmbed";
+import type { StaticHtmlAnchor } from "@/components/StaticHtmlWikiEmbed";
 
 function pageTags(page: WikiPageResponse["page"]): string[] {
   const raw = page.tags;
@@ -100,8 +101,10 @@ export default async function WikiPageView({
           {" · "}Storage: {backend}
         </p>
         <StaticHtmlWikiEmbed
+          pageId={page.id}
           title={page.title || "Embedded HTML page"}
           documentUrl={data.document_url}
+          anchors={Array.isArray(page.html_anchors) ? page.html_anchors as StaticHtmlAnchor[] : []}
         />
       </div>
     );
