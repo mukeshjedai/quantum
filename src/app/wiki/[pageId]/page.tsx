@@ -5,6 +5,7 @@ import type { WikiAttachment, WikiPageResponse } from "@/lib/types";
 import WikiContent from "@/components/WikiContent";
 import WikiPageFilesPanel from "@/components/WikiPageFilesPanel";
 import WikiPageTags from "@/components/WikiPageTags";
+import StaticHtmlWikiEmbed from "@/components/StaticHtmlWikiEmbed";
 
 function pageTags(page: WikiPageResponse["page"]): string[] {
   const raw = page.tags;
@@ -98,11 +99,9 @@ export default async function WikiPageView({
           <Link href={`/wiki/html-workspace?edit=${page.id}`}>Replace file</Link>
           {" · "}Storage: {backend}
         </p>
-        <iframe
-          title={page.title || "HTML app"}
-          src={data.document_url}
-          sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads"
-          style={{ width: "100%", height: "calc(100vh - 140px)", border: "1px solid #e2e8f0", borderRadius: 8 }}
+        <StaticHtmlWikiEmbed
+          title={page.title || "Embedded HTML page"}
+          documentUrl={data.document_url}
         />
       </div>
     );
