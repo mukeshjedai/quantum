@@ -54,14 +54,16 @@ export default function StaticHtmlWikiEmbed({ documentUrl, pageId, title = "Embe
             if (/^on/i.test(attribute.name)) element.removeAttribute(attribute.name);
           }
         });
-        const styles = Array.from(rendered.head.querySelectorAll('style, link[rel="stylesheet"]'))
-          .map((node) => node.outerHTML).join("\n");
-        shadow.innerHTML = `<style>
-          :host { display:block; color:#111827; background:#fff; }
-          *,*::before,*::after { box-sizing:border-box; }
-          img,video,svg,canvas { max-width:100%; height:auto; }
+        // Keep the original html/head/body hierarchy. Many exported books and
+        // PDF-to-HTML files position text using selectors rooted at html/body;
+        // replacing body with a div breaks those coordinates and causes overlap.
+        const reset = document.createElement("style");
+        reset.textContent = `
+          :host { display:block; color:#111827; background:#fff; overflow:auto; }
           .wiki-static-anchor { font-size:.72em; vertical-align:super; margin-left:.15em; }
-        </style>${styles}<div class="uploaded-html-root">${rendered.body.innerHTML}</div>`;
+        `;
+        const documentTree = document.importNode(rendered.documentElement, true);
+        shadow.replaceChildren(reset, documentTree);
         for (const anchor of anchors) {
           const target = shadow.querySelector(`[data-wiki-source-index="${anchor.source_index}"]`);
           if (target && /^https?:\/\//i.test(anchor.url)) {
