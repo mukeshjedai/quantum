@@ -7,6 +7,7 @@ import WikiPageFilesPanel from "@/components/WikiPageFilesPanel";
 import WikiPageTags from "@/components/WikiPageTags";
 import StaticHtmlWikiEmbed from "@/components/StaticHtmlWikiEmbed";
 import type { StaticHtmlAnchor } from "@/components/StaticHtmlWikiEmbed";
+import WikiComments from "@/components/WikiComments";
 
 function pageTags(page: WikiPageResponse["page"]): string[] {
   const raw = page.tags;
@@ -50,6 +51,7 @@ export default async function WikiPageView({
           content={String(page.body_raw ?? data.body_markdown ?? "")}
           pageType="post_notes"
         />
+        <WikiComments pageId={page.id} />
       </div>
     );
   }
@@ -70,6 +72,7 @@ export default async function WikiPageView({
           pageType="manual"
           pageId={page.id}
         />
+        <WikiComments pageId={page.id} />
       </div>
     );
   }
@@ -87,6 +90,7 @@ export default async function WikiPageView({
           className="card wiki-content"
           dangerouslySetInnerHTML={{ __html: data.body_html || "" }}
         />
+        <WikiComments pageId={page.id} />
       </div>
     );
   }
@@ -106,6 +110,7 @@ export default async function WikiPageView({
           documentUrl={data.document_url}
           anchors={Array.isArray(page.html_anchors) ? page.html_anchors as StaticHtmlAnchor[] : []}
         />
+        <WikiComments pageId={page.id} />
       </div>
     );
   }
@@ -142,6 +147,7 @@ export default async function WikiPageView({
           </p>
         ) : null}
       </div>
+      <WikiComments pageId={page.id} />
     </div>
   );
 }

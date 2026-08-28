@@ -1,0 +1,21 @@
+.root { margin-top: 1.5rem; }
+.heading { margin: 0 0 .75rem; }
+.composer, .replyForm { display: grid; gap: .55rem; }
+.textarea { width: 100%; min-height: 84px; resize: vertical; }
+.thread { list-style: none; margin: 1rem 0 0; padding: 0; }
+.comment { border-left: 2px solid #dbe2ea; margin-top: .75rem; padding-left: .8rem; }
+.meta { align-items: center; display: flex; flex-wrap: wrap; gap: .45rem; color: #64748b; font-size: .82rem; }
+.avatar { border-radius: 50%; height: 24px; object-fit: cover; width: 24px; }
+.author { color: #111827; font-weight: 650; }
+.body { margin: .45rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.actions { display: flex; gap: .45rem; }
+.smallButton { background: transparent; border: 0; color: #475569; cursor: pointer; font-size: .82rem; padding: .15rem .25rem; }
+.smallButton:hover { color: #111827; text-decoration: underline; }
+.children { list-style: none; margin: 0; padding-left: .65rem; }
+.empty { color: #64748b; }
+.error { color: #b91c1c; }
+
+@media (max-width: 640px) {
+  .comment { padding-left: .55rem; }
+  .children { padding-left: .3rem; }
+}
