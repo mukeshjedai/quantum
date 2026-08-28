@@ -7,7 +7,17 @@
 .meta { align-items: center; display: flex; flex-wrap: wrap; gap: .45rem; color: #64748b; font-size: .82rem; }
 .avatar { border-radius: 50%; height: 24px; object-fit: cover; width: 24px; }
 .author { color: #111827; font-weight: 650; }
-.body { margin: .45rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.body {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: .45rem 0;
+  overflow-wrap: anywhere;
+  padding: 0;
+}
+.body > :first-child { margin-top: 0; }
+.body > :last-child { margin-bottom: 0; }
 .actions { display: flex; gap: .45rem; }
 .smallButton { background: transparent; border: 0; color: #475569; cursor: pointer; font-size: .82rem; padding: .15rem .25rem; }
 .smallButton:hover { color: #111827; text-decoration: underline; }

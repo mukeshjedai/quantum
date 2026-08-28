@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { parseApiError } from "@/lib/api";
 import { useAuth } from "@/lib/use-auth";
+import WikiContent from "./WikiContent";
 import styles from "./WikiComments.module.css";
 
 type WikiComment = {
@@ -49,7 +50,13 @@ function CommentItem({
       <span className={styles.author}>{comment.author_name || comment.author_email || "Anonymous"}</span>
       <span>{comment.created_at ? new Date(comment.created_at).toLocaleString() : ""}</span>
     </div>
-    {!isCollapsed ? <p className={styles.body}>{comment.body}</p> : null}
+    {!isCollapsed ? (
+      <WikiContent
+        content={comment.body}
+        pageType="manual"
+        className={styles.body}
+      />
+    ) : null}
     <div className={styles.actions}>
       <button type="button" className={styles.smallButton} onClick={() => toggleCollapsed(comment.id)}>
         {isCollapsed ? `▶ Expand${replies.length ? ` (${replies.length})` : ""}` : "▼ Collapse"}

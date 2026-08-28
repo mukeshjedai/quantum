@@ -76,7 +76,6 @@ export default function WikiContent({
   const [savingAnchor, setSavingAnchor] = useState(false);
 
   useEffect(() => {
-    const links: HTMLLinkElement[] = [];
     const addLink = (href: string, crossOrigin?: string) => {
       if (document.querySelector(`link[href="${href}"]`)) return;
       const el = document.createElement("link");
@@ -84,7 +83,6 @@ export default function WikiContent({
       el.href = href;
       if (crossOrigin) el.crossOrigin = crossOrigin;
       document.head.appendChild(el);
-      links.push(el);
     };
     addLink("/static/wiki_embed.css");
     if (pageType === "manual") {
@@ -93,7 +91,6 @@ export default function WikiContent({
         "anonymous",
       );
     }
-    return () => links.forEach((el) => el.remove());
   }, [pageType]);
 
   useEffect(() => {
