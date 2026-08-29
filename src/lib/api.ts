@@ -32,5 +32,12 @@ export function parseApiError(raw: string): string {
   } catch {
     /* ignore */
   }
-  return raw || "Request failed.";
+  const text = raw.trim();
+  if (/^<!doctype html|^<html/i.test(text)) {
+    const title = text.match(/<title[^>]*>(.*?)<\/title>/i)?.[1]
+      ?.replace(/\s+/g, " ")
+      .trim();
+    return title || "The requested API endpoint was not found.";
+  }
+  return text.length > 500 ? `${text.slice(0, 500)}…` : text || "Request failed.";
 }
