@@ -1,0 +1,22 @@
+.page { margin: 0 auto; max-width: 1050px; padding: 2rem 1rem 4rem; }
+.header { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 1rem; }
+.header h1 { margin: 0 0 .35rem; }
+.upload { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; display: grid; gap: .75rem; margin-bottom: 1.25rem; padding: 1rem 1.2rem; }
+.upload h2 { font-size: 1.1rem; margin: 0; }
+.uploadRow { align-items: end; display: grid; gap: .75rem; grid-template-columns: 1fr 1.3fr auto; }
+.uploadRow button { margin-bottom: .05rem; }
+.hint { color: #64748b; font-size: .82rem; margin: 0; }
+.error { color: #b91c1c; margin: 0; }
+.success { color: #15803d; margin: 0; }
+.grid { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.exam { border: 1px solid #dbe2ea; border-radius: 10px; color: inherit; padding: 1rem; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+.exam:hover { border-color: #64748b; box-shadow: 0 3px 12px rgb(15 23 42 / 10%); }
+.exam h2 { font-size: 1.05rem; margin: 0 0 .65rem; }
+.stats { color: #475569; display: flex; flex-wrap: wrap; font-size: .82rem; gap: .45rem .8rem; }
+.progress { background: #e2e8f0; border-radius: 999px; height: 7px; margin-top: .8rem; overflow: hidden; }
+.progress span { background: #2563eb; display: block; height: 100%; }
+.empty { color: #64748b; padding: 2rem 0; }
+
+@media (max-width: 720px) {
+  .uploadRow { grid-template-columns: 1fr; }
+}
