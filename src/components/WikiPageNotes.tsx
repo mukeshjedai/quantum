@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { parseApiError } from "@/lib/api";
 import { useAuth } from "@/lib/use-auth";
 import WikiContent from "./WikiContent";
@@ -14,6 +14,8 @@ type PageNote = {
   created_at?: string;
 };
 
+type NoteOrder = "newest" | "oldest" | "title-asc" | "title-desc" | "author";
+
 export default function WikiPageNotes({ pageId }: { pageId: string }) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -23,6 +25,7 @@ export default function WikiPageNotes({ pageId }: { pageId: string }) {
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [noteOrder, setNoteOrder] = useState<NoteOrder>("newest");
 
   useEffect(() => {
     void fetch(`/api/wiki/pages/${pageId}/notes`)
@@ -32,6 +35,13 @@ export default function WikiPageNotes({ pageId }: { pageId: string }) {
       })
       .then((data) => setNotes(Array.isArray(data.notes) ? data.notes : []))
       .catch((reason) => setError(reason instanceof Error ? reason.message : "Could not load notes."));
+  }, [pageId]);
+
+  useEffect(() => {
+    const savedOrder = window.localStorage.getItem(`wiki-note-order:${pageId}`) as NoteOrder | null;
+    if (savedOrder && ["newest", "oldest", "title-asc", "title-desc", "author"].includes(savedOrder)) {
+      setNoteOrder(savedOrder);
+    }
   }, [pageId]);
 
   const save = async (event: FormEvent) => {
@@ -64,8 +74,20 @@ export default function WikiPageNotes({ pageId }: { pageId: string }) {
     }
   };
 
-  const orderedNotes = [...notes].reverse();
+  const orderedNotes = useMemo(() => [...notes].sort((left, right) => {
+    if (noteOrder === "title-asc") return left.title.localeCompare(right.title, undefined, { sensitivity: "base" });
+    if (noteOrder === "title-desc") return right.title.localeCompare(left.title, undefined, { sensitivity: "base" });
+    if (noteOrder === "author") return (left.author_name || "Anonymous").localeCompare(right.author_name || "Anonymous", undefined, { sensitivity: "base" });
+    const leftTime = left.created_at ? Date.parse(left.created_at) : 0;
+    const rightTime = right.created_at ? Date.parse(right.created_at) : 0;
+    return noteOrder === "oldest" ? leftTime - rightTime : rightTime - leftTime;
+  }), [noteOrder, notes]);
   const selectedNote = notes.find((note) => note.id === selectedNoteId) || null;
+
+  const changeOrder = (value: NoteOrder) => {
+    setNoteOrder(value);
+    window.localStorage.setItem(`wiki-note-order:${pageId}`, value);
+  };
 
   return (
     <>
@@ -93,7 +115,19 @@ export default function WikiPageNotes({ pageId }: { pageId: string }) {
         </form>
         {error ? <p className={styles.error}>{error}</p> : null}
         <div className={styles.noteList}>
-          <div className={styles.listStatus}>{notes.length} {notes.length === 1 ? "entry" : "entries"} returned</div>
+          <div className={styles.listToolbar}>
+            <span>{notes.length} {notes.length === 1 ? "entry" : "entries"} returned</span>
+            <label>
+              Arrange
+              <select value={noteOrder} onChange={(event) => changeOrder(event.target.value as NoteOrder)}>
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="title-asc">Title A–Z</option>
+                <option value="title-desc">Title Z–A</option>
+                <option value="author">Author A–Z</option>
+              </select>
+            </label>
+          </div>
           {notes.length ? <div className={styles.tableWrap}>
             <table className={styles.notesTable}>
               <thead><tr><th>Note title</th><th>Author</th><th>Created</th></tr></thead>

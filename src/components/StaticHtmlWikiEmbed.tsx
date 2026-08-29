@@ -148,7 +148,7 @@ export default function StaticHtmlWikiEmbed({ documentUrl, pageId, title = "Embe
   };
 
   if (!documentUrl) return <p className="err">Embedded HTML document is unavailable.</p>;
-  return <section className="card" aria-label={title}>
+  return <section className="card" aria-label={title} data-wiki-test-content>
     {status ? <p className="muted">{status}</p> : null}
     {error ? <p className="err">{error}</p> : null}
     <div ref={hostRef} />
