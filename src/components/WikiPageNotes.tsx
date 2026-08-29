@@ -18,7 +18,7 @@ export default function WikiPageNotes({ pageId }: { pageId: string }) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [notes, setNotes] = useState<PageNote[]>([]);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
@@ -54,7 +54,7 @@ export default function WikiPageNotes({ pageId }: { pageId: string }) {
       const data = await response.json();
       const savedNotes = Array.isArray(data.notes) ? data.notes : [...notes, data.note];
       setNotes(savedNotes);
-      if (data.note?.id) setExpanded((current) => new Set(current).add(data.note.id));
+      if (data.note?.id) setSelectedNoteId(data.note.id);
       setTitle("");
       setBody("");
     } catch (reason) {
@@ -64,11 +64,8 @@ export default function WikiPageNotes({ pageId }: { pageId: string }) {
     }
   };
 
-  const toggleNote = (id: string) => setExpanded((current) => {
-    const next = new Set(current);
-    if (next.has(id)) next.delete(id); else next.add(id);
-    return next;
-  });
+  const orderedNotes = [...notes].reverse();
+  const selectedNote = notes.find((note) => note.id === selectedNoteId) || null;
 
   return (
     <>
@@ -96,18 +93,28 @@ export default function WikiPageNotes({ pageId }: { pageId: string }) {
         </form>
         {error ? <p className={styles.error}>{error}</p> : null}
         <div className={styles.noteList}>
-          {notes.length ? [...notes].reverse().map((note) => {
-            const isExpanded = expanded.has(note.id);
-            return <article className={styles.note} key={note.id}>
-              <button type="button" className={styles.noteTitle} onClick={() => toggleNote(note.id)} aria-expanded={isExpanded}>
-                <span>{note.title}</span><span>{isExpanded ? "−" : "+"}</span>
-              </button>
-              {isExpanded ? <div className={styles.noteDetails}>
-                <WikiContent content={note.body} pageType="manual" className={styles.noteBody} />
-                <small>{note.author_name || "Anonymous"}{note.created_at ? ` · ${new Date(note.created_at).toLocaleString()}` : ""}</small>
-              </div> : null}
-            </article>;
-          }) : <p className={styles.empty}>No notes yet.</p>}
+          <div className={styles.listStatus}>{notes.length} {notes.length === 1 ? "entry" : "entries"} returned</div>
+          {notes.length ? <div className={styles.tableWrap}>
+            <table className={styles.notesTable}>
+              <thead><tr><th>Note title</th><th>Author</th><th>Created</th></tr></thead>
+              <tbody>{orderedNotes.map((note) => {
+                const isSelected = selectedNoteId === note.id;
+                return <tr className={isSelected ? styles.selectedRow : ""} key={note.id}>
+                  <td><button type="button" className={styles.rowButton} onClick={() => setSelectedNoteId(isSelected ? null : note.id)} aria-pressed={isSelected}>{note.title}</button></td>
+                  <td>{note.author_name || "Anonymous"}</td>
+                  <td>{note.created_at ? new Date(note.created_at).toLocaleDateString() : "—"}</td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </div> : <p className={styles.empty}>No notes yet.</p>}
+          {selectedNote ? <article className={styles.noteDetails}>
+            <div className={styles.detailHeader}>
+              <h3>{selectedNote.title}</h3>
+              <button type="button" onClick={() => setSelectedNoteId(null)} aria-label="Close selected note">×</button>
+            </div>
+            <WikiContent content={selectedNote.body} pageType="manual" className={styles.noteBody} />
+            <small>{selectedNote.author_name || "Anonymous"}{selectedNote.created_at ? ` · ${new Date(selectedNote.created_at).toLocaleString()}` : ""}</small>
+          </article> : null}
         </div>
       </aside>
     </>
