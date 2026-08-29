@@ -84,6 +84,7 @@ export default function WikiComments({ pageId }: { pageId: string }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [sortOrder, setSortOrder] = useState<"oldest" | "newest">("oldest");
 
   useEffect(() => {
     void fetch(`/api/wiki/pages/${pageId}/comments`)
@@ -103,8 +104,16 @@ export default function WikiComments({ pageId }: { pageId: string }) {
       group.push(comment);
       map.set(key, group);
     }
+    const direction = sortOrder === "oldest" ? 1 : -1;
+    for (const group of map.values()) {
+      group.sort((left, right) => {
+        const leftTime = left.created_at ? Date.parse(left.created_at) : 0;
+        const rightTime = right.created_at ? Date.parse(right.created_at) : 0;
+        return direction * (leftTime - rightTime);
+      });
+    }
     return map;
-  }, [comments]);
+  }, [comments, sortOrder]);
 
   const post = useCallback(async (commentBody: string, parentId?: string) => {
     setBusy(true);
@@ -143,7 +152,25 @@ export default function WikiComments({ pageId }: { pageId: string }) {
   };
   const roots = childrenByParent.get("__root__") || [];
   return <section className={`card ${styles.root}`}>
-    <h2 className={styles.heading}>Comments</h2>
+    <div className={styles.header}>
+      <div>
+        <h2 className={styles.heading}>Comments</h2>
+        <span className={styles.summary}>
+          {comments.length} {comments.length === 1 ? "comment" : "comments"} in {roots.length} {roots.length === 1 ? "thread" : "threads"}
+        </span>
+      </div>
+      {comments.length ? <div className={styles.organizeControls} aria-label="Organize comments">
+        <label className={styles.sortLabel}>
+          Sort
+          <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value as "oldest" | "newest")}>
+            <option value="oldest">Oldest first</option>
+            <option value="newest">Newest first</option>
+          </select>
+        </label>
+        <button type="button" className={styles.controlButton} onClick={() => setCollapsed(new Set())}>Expand all</button>
+        <button type="button" className={styles.controlButton} onClick={() => setCollapsed(new Set(comments.map((comment) => comment.id)))}>Collapse all</button>
+      </div> : null}
+    </div>
     <form className={styles.composer} onSubmit={submitTopLevel}>
       <textarea className={styles.textarea} value={body} onChange={(event) => setBody(event.target.value)} placeholder="Join the discussion…" />
       <button type="submit" disabled={busy || !body.trim()}>Post comment</button>

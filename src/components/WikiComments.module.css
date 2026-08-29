@@ -1,5 +1,12 @@
 .root { margin-top: 1.5rem; }
 .heading { margin: 0 0 .75rem; }
+.header { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: .9rem; }
+.summary { color: #64748b; font-size: .86rem; }
+.organizeControls { align-items: center; display: flex; flex-wrap: wrap; gap: .45rem; justify-content: flex-end; }
+.sortLabel { align-items: center; color: #475569; display: flex; font-size: .82rem; gap: .35rem; }
+.sortLabel select { background: #fff; border: 1px solid #cbd5e1; border-radius: .4rem; padding: .35rem .5rem; }
+.controlButton { background: #fff; border: 1px solid #cbd5e1; color: #334155; font-size: .82rem; padding: .38rem .6rem; }
+.controlButton:hover { background: #f8fafc; border-color: #94a3b8; }
 .composer, .replyForm { display: grid; gap: .55rem; }
 .textarea { width: 100%; min-height: 84px; resize: vertical; }
 .thread { list-style: none; margin: 1rem 0 0; padding: 0; }
@@ -26,6 +33,8 @@
 .error { color: #b91c1c; }
 
 @media (max-width: 640px) {
+  .header { align-items: stretch; flex-direction: column; }
+  .organizeControls { justify-content: flex-start; }
   .comment { padding-left: .55rem; }
   .children { padding-left: .3rem; }
 }
