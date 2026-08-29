@@ -8,6 +8,7 @@ import WikiPageTags from "@/components/WikiPageTags";
 import StaticHtmlWikiEmbed from "@/components/StaticHtmlWikiEmbed";
 import type { StaticHtmlAnchor } from "@/components/StaticHtmlWikiEmbed";
 import WikiComments from "@/components/WikiComments";
+import WikiPageNotes from "@/components/WikiPageNotes";
 
 function pageTags(page: WikiPageResponse["page"]): string[] {
   const raw = page.tags;
@@ -38,6 +39,7 @@ export default async function WikiPageView({
   if (pageType === "post_notes") {
     return (
       <div className="wrap">
+        <WikiPageNotes pageId={page.id} />
         <h1 style={{ margin: "0 0 0.5rem" }}>{page.title}</h1>
         <WikiPageTags pageId={page.id} initialTags={tags} />
         <p className="muted">
@@ -60,6 +62,7 @@ export default async function WikiPageView({
     const attachments = pageAttachments(data);
     return (
       <div className="wrap">
+        <WikiPageNotes pageId={page.id} />
         <h1>{page.title}</h1>
         <WikiPageTags pageId={page.id} initialTags={tags} />
         <WikiPageFilesPanel pageId={page.id} initialAttachments={attachments} />
@@ -80,6 +83,7 @@ export default async function WikiPageView({
   if (pageType === "html") {
     return (
       <div className="wrap">
+        <WikiPageNotes pageId={page.id} />
         <h1>{page.title}</h1>
         <WikiPageTags pageId={page.id} initialTags={tags} />
         <p className="muted">
@@ -98,6 +102,7 @@ export default async function WikiPageView({
   if (pageType === "html_app") {
     return (
       <div className="wrap" style={{ maxWidth: "100%", padding: "1rem" }}>
+        <WikiPageNotes pageId={page.id} />
         <h1>{page.title}</h1>
         <WikiPageTags pageId={page.id} initialTags={tags} />
         <p className="muted">
@@ -117,6 +122,7 @@ export default async function WikiPageView({
 
   return (
     <div className="wrap">
+      <WikiPageNotes pageId={page.id} />
       <h1>{page.title}</h1>
       <WikiPageTags pageId={page.id} initialTags={tags} />
       <p className="muted">
