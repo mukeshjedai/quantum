@@ -247,6 +247,15 @@ export default function PasteNotesBodyEditor({
           }
 
           const isPrimary = index === 0;
+          const previousIsImage = blocks[index - 1]?.type === "image";
+          const nextIsImage = blocks[index + 1]?.type === "image";
+          const placeholder = previousIsImage
+            ? "Continue writing below this image…"
+            : nextIsImage
+              ? "Write text above this image…"
+              : hasImages
+                ? "Continue writing…"
+                : "Paste your notes here…";
           return (
             <textarea
               key={`text-${index}`}
@@ -255,7 +264,7 @@ export default function PasteNotesBodyEditor({
               value={block.content}
               disabled={disabled || uploading}
               rows={Math.max(3, block.content.split("\n").length)}
-              placeholder={hasImages ? "Continue writing…" : "Paste your notes here…"}
+              placeholder={placeholder}
               onChange={(e) => emit(updateTextBlock(blocks, index, e.target.value))}
               onSelect={(e) => rememberFocus(index, e.currentTarget)}
               onKeyUp={(e) => rememberFocus(index, e.currentTarget)}

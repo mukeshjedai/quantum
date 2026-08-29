@@ -57,9 +57,10 @@ export function parsePasteBlocks(markdown: string): PasteBlock[] {
   const re = new RegExp(IMAGE_MD_RE.source, "g");
   let match: RegExpExecArray | null = re.exec(markdown);
   while (match) {
-    if (match.index > lastIndex) {
-      blocks.push({ type: "text", content: markdown.slice(lastIndex, match.index) });
-    }
+    // Keep editable text slots around every image, including empty slots at
+    // the beginning/end and between adjacent images. Without these blocks an
+    // image-only saved note reopens with no textarea at all.
+    blocks.push({ type: "text", content: markdown.slice(lastIndex, match.index) });
     blocks.push({
       type: "image",
       alt: match[1],
@@ -69,9 +70,7 @@ export function parsePasteBlocks(markdown: string): PasteBlock[] {
     lastIndex = re.lastIndex;
     match = re.exec(markdown);
   }
-  if (lastIndex < markdown.length) {
-    blocks.push({ type: "text", content: markdown.slice(lastIndex) });
-  }
+  if (blocks.length) blocks.push({ type: "text", content: markdown.slice(lastIndex) });
   if (!blocks.length) {
     blocks.push({ type: "text", content: markdown });
   }
