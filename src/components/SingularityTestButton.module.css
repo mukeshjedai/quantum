@@ -1,0 +1,15 @@
+.root { align-items: center; display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 .85rem; }
+.label { color: #475569; font-size: .82rem; font-weight: 650; margin-right: .1rem; }
+.action { align-items: center; background: #fff; border: 1px solid #cbd5e1; color: #0f172a; display: inline-flex; gap: .35rem; margin: 0; padding: .42rem .62rem; }
+.action:hover { background: #f1f5f9; border-color: #64748b; }
+.action > span:first-child { font-size: 1rem; line-height: 1; }
+.symbol { color: #1d4ed8; font-family: Georgia, serif; font-weight: 700; }
+.settings { background: transparent; border: 1px solid transparent; color: #475569; font-size: 1rem; margin: 0; padding: .38rem .48rem; }
+.settings:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.status { color: #64748b; font-size: .78rem; }
+
+@media (max-width: 560px) {
+  .label { flex-basis: 100%; }
+  .action span:last-child { display: none; }
+  .action { padding: .48rem .6rem; }
+}
