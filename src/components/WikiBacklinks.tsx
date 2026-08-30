@@ -34,7 +34,7 @@ export default function WikiBacklinks({ pageId, initialBacklinks = [], canCreate
     const timer = window.setTimeout(() => {
       void fetch(`/api/wiki/list?q=${encodeURIComponent(query)}&limit=20`, { signal: controller.signal })
         .then((response) => response.ok ? response.json() : Promise.reject(new Error("Could not search wiki pages")))
-        .then((data) => setResults((Array.isArray(data.items) ? data.items : []).filter((item: WikiListItem) => item.id !== pageId && item.page_type !== "exam")))
+        .then((data) => setResults((Array.isArray(data.items) ? data.items : []).filter((item: WikiListItem) => item.id !== pageId && !["exam", "flashcard_deck"].includes(String(item.page_type)))))
         .catch((reason) => { if (reason?.name !== "AbortError") setError(reason instanceof Error ? reason.message : "Search failed"); });
     }, 220);
     return () => { window.clearTimeout(timer); controller.abort(); };
