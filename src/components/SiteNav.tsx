@@ -16,6 +16,7 @@ const links = [
   { href: "/insights", label: "Insights" },
   { href: "/flashcards", label: "Flashcards" },
   { href: "/exams", label: "Exams", match: (p: string) => p === "/exams" || p.startsWith("/exams/") },
+  { href: "/boards", label: "Boards", match: (p: string) => p === "/boards" || p.startsWith("/boards/") },
   {
     href: "/wiki",
     label: "Wiki",

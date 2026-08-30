@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "./SingularityTestButton.module.css";
 
-type QuestionMode = "recall" | "maths" | "notations";
+type QuestionMode = "recall" | "memorise" | "maths" | "notations";
 
 export default function SingularityTestButton({ title, content }: { title: string; content: string }) {
   const [status, setStatus] = useState("");
@@ -30,6 +30,7 @@ export default function SingularityTestButton({ title, content }: { title: strin
   return <div className={styles.root} aria-label="Ask questions about this wiki page">
     <span className={styles.label}>Ask page:</span>
     <button type="button" className={styles.action} onClick={() => startTest("recall")} title="Ask active-recall questions"><span aria-hidden="true">🧠</span><span>Recall</span></button>
+    <button type="button" className={styles.action} onClick={() => startTest("memorise")} title="Memorise this page with chunking, mnemonics, and spaced recall"><span aria-hidden="true">🗂️</span><span>Memorise</span></button>
     <button type="button" className={styles.action} onClick={() => startTest("maths")} title="Ask mathematical questions"><span className={styles.symbol} aria-hidden="true">∑</span><span>Maths</span></button>
     <button type="button" className={styles.action} onClick={() => startTest("notations")} title="Ask notation and symbol questions"><span className={styles.symbol} aria-hidden="true">𝑥</span><span>Notation</span></button>
     <button type="button" className={styles.settings} onClick={() => document.dispatchEvent(new CustomEvent("singularity:open-integration-settings"))} title="Choose side-panel extension" aria-label="Side-panel extension settings">⚙</button>

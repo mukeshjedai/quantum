@@ -10,6 +10,7 @@ import type { StaticHtmlAnchor } from "@/components/StaticHtmlWikiEmbed";
 import WikiComments from "@/components/WikiComments";
 import WikiPageNotes from "@/components/WikiPageNotes";
 import SingularityTestButton from "@/components/SingularityTestButton";
+import WikiBacklinks, { type WikiBacklink } from "@/components/WikiBacklinks";
 
 function pageTags(page: WikiPageResponse["page"]): string[] {
   const raw = page.tags;
@@ -19,6 +20,9 @@ function pageTags(page: WikiPageResponse["page"]): string[] {
 function pageAttachments(data: WikiPageResponse): WikiAttachment[] {
   const raw = data.attachments ?? data.page.attachments;
   return Array.isArray(raw) ? (raw as WikiAttachment[]) : [];
+}
+function pageBacklinks(page: WikiPageResponse["page"]): WikiBacklink[] {
+  return Array.isArray(page.backlinks) ? page.backlinks as WikiBacklink[] : [];
 }
 export default async function WikiPageView({
   params,
@@ -36,12 +40,14 @@ export default async function WikiPageView({
   const { page, backend } = data;
   const pageType = page.page_type || "video";
   const tags = pageTags(page);
+  const backlinks = pageBacklinks(page);
 
   if (pageType === "post_notes") {
     return (
       <div className="wrap">
         <WikiPageNotes pageId={page.id} />
         <SingularityTestButton title={String(page.title ?? "Untitled")} content={String(page.body_raw ?? data.body_markdown ?? "")} />
+        <WikiBacklinks pageId={page.id} initialBacklinks={backlinks} canCreate />
         <h1 style={{ margin: "0 0 0.5rem" }}>{page.title}</h1>
         <WikiPageTags pageId={page.id} initialTags={tags} />
         <p className="muted">
@@ -66,6 +72,7 @@ export default async function WikiPageView({
       <div className="wrap">
         <WikiPageNotes pageId={page.id} />
         <SingularityTestButton title={String(page.title ?? "Untitled")} content={String(data.body_markdown ?? page.body_raw ?? "")} />
+        <WikiBacklinks pageId={page.id} initialBacklinks={backlinks} canCreate />
         <h1>{page.title}</h1>
         <WikiPageTags pageId={page.id} initialTags={tags} />
         <WikiPageFilesPanel pageId={page.id} initialAttachments={attachments} />
@@ -88,6 +95,7 @@ export default async function WikiPageView({
       <div className="wrap">
         <WikiPageNotes pageId={page.id} />
         <SingularityTestButton title={String(page.title ?? "Untitled")} content={String(data.body_html ?? "")} />
+        <WikiBacklinks pageId={page.id} initialBacklinks={backlinks} />
         <h1>{page.title}</h1>
         <WikiPageTags pageId={page.id} initialTags={tags} />
         <p className="muted">
@@ -108,6 +116,7 @@ export default async function WikiPageView({
       <div className="wrap" style={{ maxWidth: "100%", padding: "1rem" }}>
         <WikiPageNotes pageId={page.id} />
         <SingularityTestButton title={String(page.title ?? "Untitled")} content="" />
+        <WikiBacklinks pageId={page.id} initialBacklinks={backlinks} />
         <h1>{page.title}</h1>
         <WikiPageTags pageId={page.id} initialTags={tags} />
         <p className="muted">
@@ -129,6 +138,7 @@ export default async function WikiPageView({
     <div className="wrap">
       <WikiPageNotes pageId={page.id} />
       <SingularityTestButton title={String(page.title ?? "Untitled")} content={String(data.transcript || page.transcript || data.transcript_html || "")} />
+      <WikiBacklinks pageId={page.id} initialBacklinks={backlinks} canCreate />
       <h1>{page.title}</h1>
       <WikiPageTags pageId={page.id} initialTags={tags} />
       <p className="muted">
