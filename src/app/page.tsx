@@ -1,5 +1,5 @@
-import TranslatorForm from "@/components/TranslatorForm";
+import { redirect } from "next/navigation";
 
 export default function HomePage() {
-  return <TranslatorForm />;
+  redirect("/exams");
 }

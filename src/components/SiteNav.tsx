@@ -12,7 +12,7 @@ import {
   WIKI_PANEL_EVENT,
 } from "@/lib/wikiSidebarState";
 const links = [
-  { href: "/", label: "Translator" },
+  { href: "/translator", label: "Translator" },
   { href: "/insights", label: "Insights" },
   { href: "/flashcards", label: "Flashcards" },
   { href: "/exams", label: "Exams", match: (p: string) => p === "/exams" || p.startsWith("/exams/") },
@@ -66,7 +66,7 @@ export default function SiteNav() {
 
   return (
     <header className={styles.nav} role="banner">
-      <Link className={styles.brand} href="/">
+      <Link className={styles.brand} href="/exams">
         AppLimit
       </Link>
       {!onLogin ? (

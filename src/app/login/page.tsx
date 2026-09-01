@@ -7,7 +7,7 @@ import styles from "./login.module.css";
 function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || searchParams.get("next") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || searchParams.get("next") || "/exams";
   const error = searchParams.get("error");
   const signInHref = `/api/auth/google?next=${encodeURIComponent(callbackUrl)}`;
 

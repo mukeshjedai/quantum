@@ -23,7 +23,7 @@ export async function middleware(req: NextRequest) {
 
   if (pathname.startsWith("/login") || pathname.startsWith("/sign-in")) {
     if (await isAuthenticated(req)) {
-      const callbackUrl = req.nextUrl.searchParams.get("callbackUrl") || "/";
+      const callbackUrl = req.nextUrl.searchParams.get("callbackUrl") || "/exams";
       return NextResponse.redirect(new URL(safeNextPath(callbackUrl), req.url));
     }
     return NextResponse.next();

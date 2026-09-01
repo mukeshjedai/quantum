@@ -56,7 +56,12 @@ function FolderTree({
     <ul className={styles.tree} role="tree">
       {nodes.map((node) => {
         const children = node.children || [];
-        const links = node.links || [];
+        const links = [...(node.links || [])].sort((left, right) =>
+          (left.title || "Untitled").localeCompare(right.title || "Untitled", undefined, {
+            sensitivity: "base",
+            numeric: true,
+          }),
+        );
         const hasContent = children.length > 0 || links.length > 0;
         const isOpen = expanded.has(node.id);
 

@@ -23,8 +23,8 @@ function secretKey(): Uint8Array {
 }
 
 export function safeNextPath(raw: string | null | undefined): string {
-  if (!raw) return "/";
-  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
+  if (!raw) return "/exams";
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/exams";
   return raw;
 }
 
@@ -67,9 +67,9 @@ export async function parseOAuthState(
 ): Promise<{ ok: boolean; next: string }> {
   try {
     const { payload } = await jwtVerify(state, secretKey());
-    return { ok: true, next: safeNextPath(String(payload.next || "/")) };
+    return { ok: true, next: safeNextPath(String(payload.next || "/exams")) };
   } catch {
-    return { ok: false, next: "/" };
+    return { ok: false, next: "/exams" };
   }
 }
 
