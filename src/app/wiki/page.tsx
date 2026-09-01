@@ -62,6 +62,8 @@ function WikiIndexInner() {
         <Link href="/wiki/post-notes">Post notes</Link>
         {" · "}
         <Link href="/wiki/html-workspace">HTML workspace</Link>
+        {" · "}
+        <Link href="/wiki/graph">Knowledge graph</Link>
       </p>
       {err ? <p className="muted" style={{ fontSize: "0.85rem" }}>{err}</p> : null}
 

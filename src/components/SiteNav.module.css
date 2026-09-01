@@ -126,6 +126,20 @@
   background: #f8fafc;
 }
 
+.graphLink {
+  padding: 0.42rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #000000;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.graphLink:hover { background: #f8fafc; }
+
 @media (max-width: 900px) {
   .nav {
     flex-direction: column;

@@ -87,6 +87,9 @@ export default function SiteNav() {
       <div className={styles.right}>
         {onWiki ? (
           <div className={styles.wikiTools}>
+            <Link className={styles.graphLink} href="/wiki/graph" title="Open wiki knowledge graph">
+              ◉ Graph
+            </Link>
             <button
               type="button"
               className={styles.sidebarToggle}
