@@ -72,6 +72,23 @@ export default function SphinxWikiContent({ html, title = "Documentation", previ
         max-width: 100%;
         overflow-x: auto;
       }
+      .sphinx-content pre {
+        white-space: pre !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+        line-height: 1.5;
+        padding: 1rem !important;
+      }
+      .sphinx-content pre code {
+        display: block;
+        width: max-content;
+        min-width: 100%;
+        white-space: inherit !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.875rem;
+      }
       .sphinx-content img { max-width: 100%; height: auto; }
       .wy-breadcrumbs { padding-left: 0 !important; }
       @media (max-width: 1100px) {

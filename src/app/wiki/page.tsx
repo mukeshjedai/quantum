@@ -29,26 +29,22 @@ function WikiIndexInner() {
   }, [q]);
 
   useEffect(() => {
-    if (!q && !tag) {
-      setResults([]);
-      setActiveTag("");
-      return;
-    }
-    const params = new URLSearchParams({ limit: "50" });
+    const params = new URLSearchParams({ limit: "200" });
     if (q.trim()) params.set("q", q.trim());
     if (tag.trim()) params.set("tag", tag.trim());
     fetch(`/api/wiki/list?${params}`)
       .then((r) => r.json())
       .then((data) => {
-        setResults(data.items || []);
+        const items = Array.isArray(data.items) ? data.items : [];
+        setResults(items.sort((a: WikiListItem, b: WikiListItem) =>
+          String(a.title || "").localeCompare(String(b.title || ""), undefined, { sensitivity: "base" })
+        ));
         setBackend(data.backend || "");
         setActiveTag(data.tag || tag.trim());
         setErr(data.warning || "");
       })
       .catch((e) => setErr(String(e)));
   }, [q, tag]);
-
-  const showResults = Boolean(q || tag);
 
   return (
     <div className="wrap">
@@ -88,11 +84,10 @@ function WikiIndexInner() {
         <button type="submit">Search</button>
       </form>
 
-      {showResults ? (
-        <>
+      <>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "1.5rem 0 0.5rem", flexWrap: "wrap" }}>
             <h2 style={{ margin: 0, fontSize: "1rem", fontWeight: 650 }}>
-              {activeTag ? `Pages tagged “${activeTag}”` : "Search results"}
+              {activeTag ? `Pages tagged “${activeTag}”` : q ? "Search results" : "All wiki pages — alphabetical index"}
             </h2>
             {activeTag ? (
               <Link href={q ? `/wiki?q=${encodeURIComponent(q)}` : "/wiki"} className="muted" style={{ fontSize: "0.85rem" }}>
@@ -101,8 +96,10 @@ function WikiIndexInner() {
             ) : null}
           </div>
           {!results.length ? <p className="muted">No wiki pages found.</p> : null}
-          {results.map((r) => (
-            <div key={r.id} className="card">
+          {results.map((r, index) => (
+            <div key={r.id} className="card" style={{ display: "grid", gridTemplateColumns: "2.5rem minmax(0, 1fr)", gap: "0.75rem" }}>
+              <strong className="muted" aria-hidden="true">{index + 1}.</strong>
+              <div>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
                 <strong>
                   <Link href={`/wiki/${r.id}`}>{r.title}</Link>
@@ -132,10 +129,10 @@ function WikiIndexInner() {
                 </div>
               ) : null}
               <p style={{ margin: "0.5rem 0 0" }}>{r.summary}</p>
+              </div>
             </div>
           ))}
         </>
-      ) : null}
     </div>
   );
 }
