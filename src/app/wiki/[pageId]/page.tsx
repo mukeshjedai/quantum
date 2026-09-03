@@ -83,7 +83,7 @@ export default async function WikiPageView({
           {" · "}{isSphinx ? "Sphinx / MyST" : "Paste notes"} · Storage: {backend}
         </p>
         {isSphinx ? (
-          <SphinxWikiContent html={data.body_html || ""} />
+          <SphinxWikiContent html={data.body_html || ""} title={String(page.title || "Documentation")} />
         ) : (
           <WikiContent
             content={String(data.body_markdown ?? page.body_raw ?? "")}

@@ -209,7 +209,7 @@ function PasteNotesEditorInner() {
         <div className="card">
           <h2 style={{ marginTop: 0, fontSize: "1rem" }}>Preview</h2>
           {previewHtml ? (
-            <SphinxWikiContent html={previewHtml} preview />
+            <SphinxWikiContent html={previewHtml} title={title.trim() || "Preview"} preview />
           ) : (
             <WikiContent content={preview} pageType="manual" />
           )}
