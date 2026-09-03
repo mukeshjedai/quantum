@@ -20,6 +20,7 @@ export interface WikiPage {
   title?: string;
   page_type?: WikiPageType;
   body_raw?: string;
+  content_format?: "markdown" | "sphinx";
   created_at?: string;
   updated_at?: string;
   video_id?: string;

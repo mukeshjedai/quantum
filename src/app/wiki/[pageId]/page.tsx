@@ -68,6 +68,7 @@ export default async function WikiPageView({
 
   if (pageType === "manual") {
     const attachments = pageAttachments(data);
+    const isSphinx = page.content_format === "sphinx";
     return (
       <div className="wrap">
         <WikiPageNotes pageId={page.id} />
@@ -78,13 +79,20 @@ export default async function WikiPageView({
         <WikiPageFilesPanel pageId={page.id} initialAttachments={attachments} />
         <p className="muted">
           <Link href={`/wiki/paste?edit=${page.id}`}>Edit this page</Link>
-          {" · "}Paste notes · Storage: {backend}
+          {" · "}{isSphinx ? "Sphinx / MyST" : "Paste notes"} · Storage: {backend}
         </p>
-        <WikiContent
-          content={String(data.body_markdown ?? page.body_raw ?? "")}
-          pageType="manual"
-          pageId={page.id}
-        />
+        {isSphinx ? (
+          <div
+            className="card wiki-content sphinx-content"
+            dangerouslySetInnerHTML={{ __html: data.body_html || "" }}
+          />
+        ) : (
+          <WikiContent
+            content={String(data.body_markdown ?? page.body_raw ?? "")}
+            pageType="manual"
+            pageId={page.id}
+          />
+        )}
         <WikiComments pageId={page.id} />
       </div>
     );

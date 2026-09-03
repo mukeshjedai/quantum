@@ -13,8 +13,10 @@ function PasteNotesEditorInner() {
   const editId = searchParams.get("edit");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [contentFormat, setContentFormat] = useState<"markdown" | "sphinx">("markdown");
   const [attachments, setAttachments] = useState<WikiAttachment[]>([]);
   const [preview, setPreview] = useState("");
+  const [previewHtml, setPreviewHtml] = useState("");
   const [status, setStatus] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
@@ -26,6 +28,7 @@ function PasteNotesEditorInner() {
       .then((data) => {
         setTitle(data.page?.title || "");
         setBody(data.page?.body_raw || "");
+        setContentFormat(data.page?.content_format === "sphinx" ? "sphinx" : "markdown");
         setAttachments(data.attachments || data.page?.attachments || []);
       })
       .catch((e) => setErr(String(e)));
@@ -39,11 +42,12 @@ function PasteNotesEditorInner() {
       const res = await fetch("/api/wiki/manual/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body }),
+        body: JSON.stringify({ body, content_format: contentFormat }),
       });
       if (!res.ok) throw new Error(parseApiError(await res.text()));
       const data = await res.json();
       setPreview(data.markdown || "");
+      setPreviewHtml(data.html || "");
       setStatus("Preview updated.");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Preview failed");
@@ -64,6 +68,7 @@ function PasteNotesEditorInner() {
         body: JSON.stringify({
           title: title.trim() || "Untitled",
           body,
+          content_format: contentFormat,
           page_id: editId,
           folder_id: folderEl?.value || null,
           attachments,
@@ -140,6 +145,27 @@ function PasteNotesEditorInner() {
       <div className="card">
         <label htmlFor="title">Title</label>
         <input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <label htmlFor="content-format" style={{ marginTop: "0.6rem" }}>
+          Page format
+        </label>
+        <select
+          id="content-format"
+          value={contentFormat}
+          onChange={(event) => {
+            setContentFormat(event.target.value === "sphinx" ? "sphinx" : "markdown");
+            setPreview("");
+            setPreviewHtml("");
+          }}
+          disabled={busy}
+        >
+          <option value="markdown">Wiki Markdown + math</option>
+          <option value="sphinx">Sphinx / MyST documentation</option>
+        </select>
+        {contentFormat === "sphinx" ? (
+          <p className="muted" style={{ margin: "0.35rem 0 0" }}>
+            Supports MyST headings, links, code fences, tables, directives, and dollar-delimited math.
+          </p>
+        ) : null}
         <label htmlFor="body" style={{ marginTop: "0.6rem" }}>
           Notes
         </label>
@@ -167,10 +193,14 @@ function PasteNotesEditorInner() {
         {status ? <p className="muted">{status}</p> : null}
         {err ? <p className="err">{err}</p> : null}
       </div>
-      {preview ? (
+      {preview || previewHtml ? (
         <div className="card">
           <h2 style={{ marginTop: 0, fontSize: "1rem" }}>Preview</h2>
-          <WikiContent content={preview} pageType="manual" />
+          {previewHtml ? (
+            <div className="wiki-content sphinx-content" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+          ) : (
+            <WikiContent content={preview} pageType="manual" />
+          )}
         </div>
       ) : null}
     </div>
