@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import PasteNotesBodyEditor from "@/components/PasteNotesBodyEditor";
 import WikiContent from "@/components/WikiContent";
 import WikiFolderSelect from "@/components/WikiFolderSelect";
+import SphinxWikiContent from "@/components/SphinxWikiContent";
 import { parseApiError } from "@/lib/api";
 import type { WikiAttachment } from "@/lib/types";
 
@@ -13,7 +14,7 @@ function PasteNotesEditorInner() {
   const editId = searchParams.get("edit");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [contentFormat, setContentFormat] = useState<"markdown" | "sphinx">("markdown");
+  const [contentFormat, setContentFormat] = useState<"markdown" | "sphinx_myst" | "sphinx_rst">("markdown");
   const [attachments, setAttachments] = useState<WikiAttachment[]>([]);
   const [preview, setPreview] = useState("");
   const [previewHtml, setPreviewHtml] = useState("");
@@ -28,7 +29,13 @@ function PasteNotesEditorInner() {
       .then((data) => {
         setTitle(data.page?.title || "");
         setBody(data.page?.body_raw || "");
-        setContentFormat(data.page?.content_format === "sphinx" ? "sphinx" : "markdown");
+        setContentFormat(
+          data.page?.content_format === "sphinx_rst"
+            ? "sphinx_rst"
+            : String(data.page?.content_format || "").startsWith("sphinx")
+              ? "sphinx_myst"
+              : "markdown",
+        );
         setAttachments(data.attachments || data.page?.attachments || []);
       })
       .catch((e) => setErr(String(e)));
@@ -152,18 +159,23 @@ function PasteNotesEditorInner() {
           id="content-format"
           value={contentFormat}
           onChange={(event) => {
-            setContentFormat(event.target.value === "sphinx" ? "sphinx" : "markdown");
+            const format = event.target.value;
+            setContentFormat(
+              format === "sphinx_rst" ? "sphinx_rst" : format === "sphinx_myst" ? "sphinx_myst" : "markdown",
+            );
             setPreview("");
             setPreviewHtml("");
           }}
           disabled={busy}
         >
           <option value="markdown">Wiki Markdown + math</option>
-          <option value="sphinx">Sphinx / MyST documentation</option>
+          <option value="sphinx_myst">Sphinx / MyST — Renku theme</option>
+          <option value="sphinx_rst">Sphinx / reStructuredText — Renku theme</option>
         </select>
-        {contentFormat === "sphinx" ? (
+        {contentFormat !== "markdown" ? (
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
-            Supports MyST headings, links, code fences, tables, directives, and dollar-delimited math.
+            Uses the isolated Renku/Read-the-Docs presentation. The source remains editable and does not
+            affect styling outside this document.
           </p>
         ) : null}
         <label htmlFor="body" style={{ marginTop: "0.6rem" }}>
@@ -197,7 +209,7 @@ function PasteNotesEditorInner() {
         <div className="card">
           <h2 style={{ marginTop: 0, fontSize: "1rem" }}>Preview</h2>
           {previewHtml ? (
-            <div className="wiki-content sphinx-content" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+            <SphinxWikiContent html={previewHtml} preview />
           ) : (
             <WikiContent content={preview} pageType="manual" />
           )}

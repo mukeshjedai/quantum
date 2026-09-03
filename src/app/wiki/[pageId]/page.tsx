@@ -11,6 +11,7 @@ import WikiComments from "@/components/WikiComments";
 import WikiPageNotes from "@/components/WikiPageNotes";
 import SingularityTestButton from "@/components/SingularityTestButton";
 import WikiBacklinks, { type WikiBacklink } from "@/components/WikiBacklinks";
+import SphinxWikiContent from "@/components/SphinxWikiContent";
 
 function pageTags(page: WikiPageResponse["page"]): string[] {
   const raw = page.tags;
@@ -68,7 +69,7 @@ export default async function WikiPageView({
 
   if (pageType === "manual") {
     const attachments = pageAttachments(data);
-    const isSphinx = page.content_format === "sphinx";
+    const isSphinx = String(page.content_format || "").startsWith("sphinx");
     return (
       <div className="wrap">
         <WikiPageNotes pageId={page.id} />
@@ -82,10 +83,7 @@ export default async function WikiPageView({
           {" · "}{isSphinx ? "Sphinx / MyST" : "Paste notes"} · Storage: {backend}
         </p>
         {isSphinx ? (
-          <div
-            className="card wiki-content sphinx-content"
-            dangerouslySetInnerHTML={{ __html: data.body_html || "" }}
-          />
+          <SphinxWikiContent html={data.body_html || ""} />
         ) : (
           <WikiContent
             content={String(data.body_markdown ?? page.body_raw ?? "")}
