@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { parseApiError } from "@/lib/api";
 import { useAuth } from "@/lib/use-auth";
@@ -9,10 +9,11 @@ import styles from "./ExamAttempt.module.css";
 
 type Question = { id: string; type: "mcq" | "long_answer"; question: string; options: string[]; marks: number; model_answer?: string; marking_criteria?: string[] };
 type Answer = { answer: string; correct: boolean; correct_answer?: string; awarded_marks?: number; max_marks?: number; feedback?: string; strengths?: string[]; improvements?: string[] };
-type Exam = { id: string; title: string; question_count: number; questions: Question[]; status: { answers: Record<string, Answer>; current_index: number }; correct_count: number; incorrect_count: number; answered_count: number; completed: boolean; total_marks: number; awarded_marks: number; percentage: number };
+type Exam = { id: string; title: string; flashcard_deck_id?: string; question_count: number; questions: Question[]; status: { answers: Record<string, Answer>; current_index: number }; correct_count: number; incorrect_count: number; answered_count: number; completed: boolean; total_marks: number; awarded_marks: number; percentage: number };
 
 export default function ExamAttemptPage() {
   const { examId } = useParams<{ examId: string }>();
+  const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [exam, setExam] = useState<Exam | null>(null);
   const [index, setIndex] = useState(0);
@@ -57,12 +58,29 @@ export default function ExamAttemptPage() {
     finally { setBusy(false); }
   };
 
+  const openFlashcards = async () => {
+    if (!exam) return;
+    setBusy(true); setError("");
+    try {
+      let deckId = exam.flashcard_deck_id;
+      if (!deckId) {
+        const response = await fetch(`/api/exams/${exam.id}/flashcards`, { method: "POST" });
+        if (!response.ok) throw new Error(parseApiError(await response.text()));
+        const data = await response.json();
+        deckId = data.flashcard_deck?.id;
+      }
+      if (!deckId) throw new Error("Could not create the flashcard deck.");
+      router.push(`/flashcards?deck=${encodeURIComponent(deckId)}`);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not open flashcards."); }
+    finally { setBusy(false); }
+  };
+
   if (error && !exam) return <main className={styles.page}><Link href="/exams">← Exams</Link><p className={styles.error}>{error}</p></main>;
   if (!exam) return <main className={styles.page}><p>Loading exam…</p></main>;
   const question = exam.questions[index];
   const result = exam.status.answers[question.id];
   return <main className={styles.page}>
-    <div className={styles.top}><div><Link href="/exams">← All exams</Link><h1>{exam.title}</h1></div><div><button className={styles.save} type="button" onClick={saveProgress} disabled={busy}>Save progress</button>{saved ? <div className={styles.saved}>{saved}</div> : null}</div></div>
+    <div className={styles.top}><div><Link href="/exams">← All exams</Link><h1>{exam.title}</h1></div><div><button className={styles.save} type="button" onClick={openFlashcards} disabled={busy}>Study flashcards</button> <button className={styles.save} type="button" onClick={saveProgress} disabled={busy}>Save progress</button>{saved ? <div className={styles.saved}>{saved}</div> : null}</div></div>
     <div className={styles.modeSwitch} role="group" aria-label="Exam mode"><button type="button" className={studyMode ? styles.activeMode : ""} onClick={() => setStudyMode(true)}>Study model answers</button><button type="button" className={!studyMode ? styles.activeMode : ""} onClick={() => setStudyMode(false)}>Attempt exam</button></div>
     <div className={styles.overview}><span>{exam.question_count} questions</span><span>{exam.total_marks} total marks</span><span>{exam.answered_count} attempted</span><span>{exam.awarded_marks} marks awarded</span></div>
     {exam.completed ? <section className={styles.result}><h2>Result</h2><strong>{exam.awarded_marks} / {exam.total_marks} marks</strong><p>{exam.percentage}%</p></section> : null}

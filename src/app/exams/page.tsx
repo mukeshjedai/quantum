@@ -46,7 +46,7 @@ export default function ExamsPage() {
       if (!response.ok) throw new Error(parseApiError(await response.text()));
       const data = await response.json();
       setExams((current) => [data.exam, ...current]);
-      setTitle(""); setFile(null); setMessage(`Created “${data.exam.title}” with ${data.exam.question_count} questions.`);
+      setTitle(""); setFile(null); setMessage(`Created “${data.exam.title}” with ${data.exam.question_count} questions and a matching flashcard deck.`);
       const input = document.getElementById("exam-json-file") as HTMLInputElement | null;
       if (input) input.value = "";
     } catch (reason) {

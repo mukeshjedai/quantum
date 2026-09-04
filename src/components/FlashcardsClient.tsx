@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { parseApiError } from "@/lib/api";
 import { useAuth } from "@/lib/use-auth";
 import styles from "./FlashcardsClient.module.css";
@@ -27,6 +27,7 @@ export default function FlashcardsClient() {
   const [flipped, setFlipped] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const requestedDeckOpened = useRef(false);
 
   const userQuery = user?.email ? `?user_email=${encodeURIComponent(user.email)}` : "";
   const loadDecks = useCallback(async () => {
@@ -94,6 +95,16 @@ export default function FlashcardsClient() {
       setActive(data.deck); setFlipped(false); setMessage("");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not open deck."); }
   };
+
+  useEffect(() => {
+    if (requestedDeckOpened.current) return;
+    const requestedDeck = new URLSearchParams(window.location.search).get("deck");
+    if (!requestedDeck) return;
+    requestedDeckOpened.current = true;
+    void openDeck(requestedDeck);
+  // The query-string deck is intentionally opened only once on page load.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const saveProgress = async (deck: DeckDetail, index: number, seen: string[], mastered: string[]) => {
     if (!user?.email) throw new Error("Sign in to save flashcard progress.");
