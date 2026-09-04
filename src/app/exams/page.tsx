@@ -8,7 +8,7 @@ import styles from "./Exams.module.css";
 
 type ExamSummary = {
   id: string; title: string; question_count: number; answered_count: number;
-  correct_count: number; incorrect_count: number; completed: boolean;
+  correct_count: number; incorrect_count: number; completed: boolean; total_marks?: number; awarded_marks?: number;
 };
 
 export default function ExamsPage() {
@@ -63,13 +63,14 @@ export default function ExamsPage() {
         <label>Questions JSON<input id="exam-json-file" type="file" accept="application/json,.json" required onChange={(event) => setFile(event.target.files?.[0] || null)} /></label>
         <button type="submit" disabled={busy || !file}>{busy ? "Creating…" : "Upload and create"}</button>
       </div>
-      <p className={styles.hint}>Each question needs <code>question</code>, four <code>options</code>, and <code>correct_answer</code> set to A, B, C, or D. A/B/C/D option columns are also accepted.</p>
+      <p className={styles.hint}>MCQs need <code>question</code>, four <code>options</code>, and <code>correct_answer</code>. Written questions use <code>type: &quot;long_answer&quot;</code>, <code>marks: 5</code> or <code>10</code>, <code>model_answer</code>, and optional <code>marking_criteria</code>.</p>
+      <p className={styles.hint}><a href="/exam-long-answer-example.json" download>Download a 5-mark and 10-mark example JSON file</a></p>
       {error ? <p className={styles.error}>{error}</p> : null}{message ? <p className={styles.success}>{message}</p> : null}
     </form>
     {exams.length ? <section className={styles.grid} aria-label="Available exams">{exams.map((exam) => {
       const progress = exam.question_count ? Math.round((exam.answered_count / exam.question_count) * 100) : 0;
       return <Link className={styles.exam} href={`/exams/${exam.id}`} key={exam.id}>
-        <h2>{exam.title}</h2><div className={styles.stats}><span>{exam.question_count} questions</span><span>{exam.answered_count} attempted</span>{exam.answered_count ? <span>{exam.correct_count} correct</span> : null}{exam.completed ? <strong>Completed</strong> : null}</div>
+        <h2>{exam.title}</h2><div className={styles.stats}><span>{exam.question_count} questions</span><span>{exam.total_marks ?? exam.question_count} marks</span><span>{exam.answered_count} attempted</span>{exam.answered_count ? <span>{exam.awarded_marks ?? exam.correct_count} marks awarded</span> : null}{exam.completed ? <strong>Completed</strong> : null}</div>
         <div className={styles.progress} aria-label={`${progress}% complete`}><span style={{ width: `${progress}%` }} /></div>
       </Link>;
     })}</section> : <p className={styles.empty}>No exams yet. Upload a JSON question file to create one.</p>}

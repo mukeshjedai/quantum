@@ -1,0 +1,32 @@
+{
+  "title": "Quantum Physics — Written Answers",
+  "questions": [
+    {
+      "type": "long_answer",
+      "question": "Explain how quantum interference differs from classical probability addition.",
+      "marks": 5,
+      "model_answer": "Quantum alternatives combine as complex probability amplitudes before the probability is calculated. Their relative phases therefore produce constructive or destructive interference. Classical mutually exclusive probabilities are added directly and do not contain a phase-dependent cross term.",
+      "marking_criteria": [
+        "States that quantum probability amplitudes combine",
+        "Explains the role of relative phase",
+        "Identifies constructive and destructive interference",
+        "Contrasts amplitude addition with classical probability addition"
+      ]
+    },
+    {
+      "type": "long_answer",
+      "question": "Describe the operation and physical significance of a balanced beam splitter.",
+      "marks": 10,
+      "model_answer": "A balanced beam splitter applies a unitary transformation that mixes two optical input modes with equal-magnitude transmission and reflection amplitudes. The relative phase required by unitarity affects two-photon interference. For indistinguishable photons entering separate input ports, the reflected-transmitted alternatives interfere destructively, producing Hong–Ou–Mandel bunching at the outputs. The device is therefore a fundamental element for preparing superpositions, implementing interferometers, and processing photonic quantum information.",
+      "marking_criteria": [
+        "Defines equal-magnitude transmission and reflection",
+        "Identifies the transformation as unitary",
+        "Discusses the relative phase",
+        "Explains mixing of two optical modes",
+        "Connects the device to two-photon interference",
+        "Correctly explains Hong–Ou–Mandel bunching",
+        "Mentions at least one photonic quantum-information application"
+      ]
+    }
+  ]
+}

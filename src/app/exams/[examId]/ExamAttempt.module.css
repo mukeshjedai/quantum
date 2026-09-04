@@ -28,3 +28,17 @@
 .result h2 { margin: 0 0 .5rem; }
 .error { color: #b91c1c; }
 .saved { color: #15803d; font-size: .85rem; }
+.modeSwitch { display: inline-flex; gap: .35rem; margin: .75rem 0; padding: .3rem; background: #eef2f7; border-radius: 10px; }
+.modeSwitch button { margin: 0; background: transparent; color: #334155; }
+.modeSwitch .activeMode { background: #0f172a; color: #fff; }
+.modelAnswer { background: #f8fafc; border-left: 4px solid #2563eb; border-radius: 8px; padding: 1rem; white-space: pre-wrap; }
+.modelAnswer h3, .modelAnswer h4 { margin: 0 0 .55rem; }
+.modelAnswer p, .modelAnswer ul { margin-bottom: .7rem; }
+.writtenAnswer { display: grid; gap: .6rem; }
+.writtenAnswer label { font-weight: 650; }
+.writtenAnswer textarea { min-height: 220px; resize: vertical; width: 100%; }
+.writtenAnswer button { justify-self: start; margin: 0; }
+.feedback p { font-weight: 400; }
+.feedback h4 { margin: .75rem 0 .25rem; }
+.feedback ul { font-weight: 400; margin: .25rem 0; }
+.feedback details { font-weight: 400; margin-top: .8rem; }
