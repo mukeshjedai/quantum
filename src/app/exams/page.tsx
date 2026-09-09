@@ -56,6 +56,11 @@ export default function ExamsPage() {
 
   return <main className={styles.page}>
     <div className={styles.header}><div><h1>Exams</h1><p className="muted">Create exams from JSON, attempt questions, and resume saved progress.</p></div></div>
+    <section className={styles.upload} aria-label="Active recall">
+      <h2>Active recall</h2>
+      <p>Study a small chunk, hide it, and explain or write it from memory. Compare, correct, and try again.</p>
+      <div><Link href="/exams/active-recall">Open active recall →</Link>{" · "}<Link href="/exams/active-recall/new">+ New active recall</Link></div>
+    </section>
     <form className={styles.upload} onSubmit={upload}>
       <h2>Create an exam</h2>
       <div className={styles.uploadRow}>

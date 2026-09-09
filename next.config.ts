@@ -7,6 +7,8 @@ const apiBase = process.env.APPLIMIT_API_URL ||
 
 /** Proxy backend API paths only — never /api/auth (NextAuth runs on Vercel). */
 const backendApiRewrites = [
+  { source: "/api/active-recall", destination: `${apiBase}/api/active-recall` },
+  { source: "/api/active-recall/:path*", destination: `${apiBase}/api/active-recall/:path*` },
   { source: "/api/jobs", destination: `${apiBase}/api/jobs` },
   { source: "/api/jobs/:path*", destination: `${apiBase}/api/jobs/:path*` },
   { source: "/api/wiki/:path*", destination: `${apiBase}/api/wiki/:path*` },
