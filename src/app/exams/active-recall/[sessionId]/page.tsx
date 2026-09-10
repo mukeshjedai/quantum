@@ -76,7 +76,7 @@ export default function RecallSessionPage() {
     </section>}
     {stage === "compare" && <>
       <section className={styles.card}><h2>Compare with the original</h2><p>Your original answers are kept unchanged. Identify the missing or incorrect parts below.</p>
-        {session.prompts.map((prompt, i) => <div key={i}><h3>{prompt}</h3><pre className={styles.reference}>{responses[i] || "No response"}</pre></div>)}
+        {session.prompts.map((prompt, i) => <div key={i}><h3>{prompt}</h3><h4>Your recall</h4><pre className={styles.reference}>{responses[i] || "No response"}</pre>{session.answer_keys?.[i] && <><h4>Answer key</h4><pre className={styles.reference}>{session.answer_keys[i]}</pre></>}</div>)}
         <h3>Reference</h3><pre className={styles.reference}>{session.reference}</pre>
         {session.source_page_id && <Link href={`/wiki/${session.source_page_id}`} target="_blank" rel="noopener noreferrer">Open source wiki page ↗</Link>}
       </section>

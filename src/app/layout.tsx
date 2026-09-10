@@ -4,8 +4,8 @@ import Providers from "@/components/Providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AppLimit",
-  description: "YouTube video translator, insights, flashcards, and wiki",
+  title: "OpenWiki",
+  description: "Your knowledge wiki, AI active recall, exams, and flashcards",
 };
 
 export default function RootLayout({

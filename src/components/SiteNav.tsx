@@ -67,7 +67,7 @@ export default function SiteNav() {
   return (
     <header className={styles.nav} role="banner">
       <Link className={styles.brand} href="/exams">
-        AppLimit
+        OpenWiki
       </Link>
       {!onLogin ? (
         <nav className={styles.links} aria-label="Main navigation">

@@ -229,7 +229,7 @@ export default function WikiContent({
           if (text) message = text;
         }
         if (response.status === 404) {
-          message = "The anchor API is not deployed yet. Deploy the latest AppLimit backend and try again.";
+          message = "The anchor API is not deployed yet. Deploy the latest OpenWiki backend and try again.";
         }
         throw new Error(message);
       }

@@ -1,6 +1,6 @@
 import { parseApiError } from "@/lib/api";
 
-export type RecallSession = { id: string; title: string; reference: string; prompts: string[]; source_page_id: string };
+export type RecallSession = { id: string; title: string; reference: string; prompts: string[]; answer_keys?: string[]; source_page_id: string };
 export type RecallAttempt = { id: string; responses: string[]; corrections: string; rating: string; created_at: string; next_review: string };
 
 export async function recallApi<T>(path = "", body?: unknown): Promise<T> {

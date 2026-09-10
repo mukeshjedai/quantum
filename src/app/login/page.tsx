@@ -25,7 +25,7 @@ function LoginInner() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        <p className={styles.kicker}>AppLimit</p>
+        <p className={styles.kicker}>OpenWiki</p>
         <h1 className={styles.title}>Sign in</h1>
         <p className={styles.subtitle}>
           Continue to the translator, wiki, flashcards, and insights. You stay on this page until you
