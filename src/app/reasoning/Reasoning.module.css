@@ -1,0 +1,21 @@
+.page { max-width: 1080px; margin: auto; padding: 2rem 1rem 4rem; color: #1e293b; }
+.intro { max-width: 720px; color: #526177; line-height: 1.6; }
+.tabs,.actions { display:flex; flex-wrap:wrap; gap:.7rem; margin:1rem 0; }
+.tabs button[aria-pressed=true] { background:#164e63; color:white; }
+.layout { display:grid; grid-template-columns:230px minmax(0,1fr); gap:1.2rem; margin:1.5rem 0; }
+.menu { display:flex; flex-direction:column; gap:.5rem; }
+.menu button { text-align:left; }
+.menu button[aria-current=step] { border:2px solid #0e7490; background:#ecfeff; color:#164e63; }
+.card { background:white; border:1px solid #dce3ed; border-radius:14px; padding:1.3rem; margin-bottom:1rem; line-height:1.65; min-width:0; }
+.card h2 { margin-top:0; }
+.example { background:#f0f9ff; border-left:3px solid #0891b2; padding:1rem; margin:1rem 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.options { display:grid; gap:.6rem; margin:1rem 0; border:0; padding:0; }
+.options label { display:flex; align-items:flex-start; gap:.65rem; }
+.options input { width:auto; margin-top:.45rem; }
+.field { display:grid; gap:.6rem; font-weight:600; margin:1rem 0; }
+.field textarea { width:100%; box-sizing:border-box; resize:vertical; border:1px solid #94a3b8; border-radius:8px; padding:.8rem; font:inherit; font-weight:400; line-height:1.55; }
+.hint { font-size:.9rem; color:#526177; }
+.result { padding:1rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; }
+.error { color:#b91c1c; }
+.summary { white-space:pre-wrap; overflow-wrap:anywhere; }
+@media(max-width:700px) { .layout { grid-template-columns:1fr; } .menu { flex-direction:row; flex-wrap:wrap; } .menu button { flex:1 1 150px; } }
