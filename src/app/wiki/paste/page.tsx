@@ -183,6 +183,7 @@ function PasteNotesEditorInner() {
         </label>
         <PasteNotesBodyEditor
           id="body"
+          contentFormat={contentFormat}
           value={body}
           onChange={setBody}
           pageId={editId}

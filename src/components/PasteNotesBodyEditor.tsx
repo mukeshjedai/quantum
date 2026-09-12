@@ -24,9 +24,11 @@ import {
   type PasteBlock,
 } from "@/lib/wikiPasteEditor";
 import styles from "./PasteNotesBodyEditor.module.css";
+import { codeBlock, richHtmlToMarkdown } from "@/lib/wikiRichPaste";
 
 type PasteNotesBodyEditorProps = {
   id?: string;
+  contentFormat?: string;
   value: string;
   onChange: (value: string) => void;
   pageId?: string | null;
@@ -46,6 +48,7 @@ type FocusState = {
 
 export default function PasteNotesBodyEditor({
   id,
+  contentFormat = "markdown",
   value,
   onChange,
   pageId = null,
@@ -63,6 +66,11 @@ export default function PasteNotesBodyEditor({
   const [blocks, setBlocks] = useState<PasteBlock[]>(() => parsePasteBlocks(value));
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [richPaste, setRichPaste] = useState(true);
+  const [showCode, setShowCode] = useState(false);
+  const [code, setCode] = useState("");
+  const [language, setLanguage] = useState("python");
+  const isRst = contentFormat === "sphinx_rst";
 
   useEffect(() => {
     if (value !== lastEmitted.current) {
@@ -87,6 +95,20 @@ export default function PasteNotesBodyEditor({
       start: el.selectionStart,
       end: el.selectionEnd,
     };
+  };
+
+  const insertAtCursor = (text: string) => {
+    const focus = focusRef.current;
+    const block = focus ? blocks[focus.blockIndex] : null;
+    if (focus && block?.type === "text") {
+      emit(updateTextBlock(blocks, focus.blockIndex, block.content.slice(0,focus.start)+text+block.content.slice(focus.end)));
+      focusRef.current = { ...focus, start: focus.start+text.length, end: focus.start+text.length };
+    } else emit(insertTextIntoBlocks(blocks,null,text));
+  };
+  const selectedText = () => {
+    const focus=focusRef.current;
+    const block=focus ? blocks[focus.blockIndex] : null;
+    return focus && block?.type === "text" ? block.content.slice(focus.start,focus.end) : "";
   };
 
   const uploadImages = useCallback(
@@ -205,6 +227,18 @@ export default function PasteNotesBodyEditor({
   const onPaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     if (disabled || uploading) return;
     const files = imageFilesFromClipboard(e.clipboardData);
+    const clipboardHtml = e.clipboardData.getData("text/html");
+    if (richPaste && !isRst && clipboardHtml && e.clipboardData.getData("text/plain").trim()) {
+      const markdown = richHtmlToMarkdown(clipboardHtml);
+      if (markdown) {
+        e.preventDefault();
+        const index=blocks.findIndex((_,i)=>i===focusRef.current?.blockIndex);
+        if (index>=0) rememberFocus(index,e.currentTarget);
+        insertAtCursor(markdown);
+        onStatus?.("Pasted formatting as editable Markdown. Use Preview to see the result.");
+        return;
+      }
+    }
     if (!files.length) return;
     e.preventDefault();
     await handleFiles(files);
@@ -232,6 +266,21 @@ export default function PasteNotesBodyEditor({
       onDragLeave={onDragLeave}
       onDrop={(e) => void onDrop(e)}
     >
+      <div className={styles.toolbar} role="group" aria-label="Text formatting">
+        <button type="button" disabled={disabled || uploading} onClick={()=>insertAtCursor(`**${selectedText() || "bold text"}**`)}>Bold</button>
+        <button type="button" disabled={disabled || uploading} onClick={()=>insertAtCursor(`*${selectedText() || "italic text"}*`)}>Italic</button>
+        <button type="button" disabled={disabled || uploading || isRst} onClick={()=>insertAtCursor(`\n\n## ${selectedText() || "Heading"}\n\n`)}>Heading</button>
+        <button type="button" disabled={disabled || uploading} onClick={()=>insertAtCursor("\n\n"+(selectedText() || "List item").split("\n").map(line=>"- "+line).join("\n")+"\n\n")}>Bullet list</button>
+        <button type="button" disabled={disabled || uploading || isRst} onClick={()=>insertAtCursor("\n\n| Column 1 | Column 2 |\n| --- | --- |\n| Value | Value |\n\n")}>Table</button>
+        <button type="button" disabled={disabled || uploading} onClick={()=>{setCode(selectedText());setShowCode(true);}}>Add code</button>
+        <label style={{display:"inline-flex",alignItems:"center",gap:".4rem"}}><input style={{width:"auto"}} type="checkbox" checked={richPaste && !isRst} disabled={disabled || uploading || isRst} onChange={e=>setRichPaste(e.target.checked)} />Preserve pasted formatting</label>
+      </div>
+      {isRst && <p className={styles.hint}>RST source is pasted unchanged. Use MyST or Markdown for formatted clipboard paste.</p>}
+      {showCode && <section style={{border:"1px solid #cbd5e1",padding:"1rem",borderRadius:8,marginBottom:"1rem"}} aria-label="Insert code block">
+        <label>Code language<select value={language} disabled={disabled || uploading} onChange={e=>setLanguage(e.target.value)}>{["python","javascript","typescript","json","bash","sql","html","css","text"].map(lang=><option key={lang} value={lang}>{lang}</option>)}</select></label>
+        <label>Code<textarea aria-label="Code to insert" style={{width:"100%",fontFamily:"monospace",whiteSpace:"pre",boxSizing:"border-box"}} rows={8} value={code} disabled={disabled || uploading} onChange={e=>setCode(e.target.value)} placeholder="Paste code here; indentation is preserved." /></label>
+        <div className={styles.toolbar}><button type="button" disabled={disabled || uploading || !code.trim()} onClick={()=>{insertAtCursor(codeBlock(code,language,isRst));setShowCode(false);setCode("");onStatus?.("Code block inserted. Preview to check formatting.");}}>Insert code block</button><button type="button" onClick={()=>setShowCode(false)}>Cancel</button></div>
+      </section>}
       <div className={styles.blocks}>
         {blocks.map((block, index) => {
           if (block.type === "image") {
