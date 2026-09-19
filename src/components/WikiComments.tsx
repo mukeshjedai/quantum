@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseApiError } from "@/lib/api";
 import { useAuth } from "@/lib/use-auth";
+import RichCommentBody from "./RichCommentBody";
 import CommentEditor from "./CommentEditor";
 import WikiContent from "./WikiContent";
 import styles from "./WikiComments.module.css";
@@ -65,7 +66,7 @@ function CommentItem({
       <span>{comment.created_at ? new Date(comment.created_at).toLocaleString() : ""}</span>
     </div>
     {!isCollapsed ? (
-      <div ref={renderedBody}>{comment.content_format === "html" ? <div className={styles.richBody} dangerouslySetInnerHTML={{ __html: comment.body }} /> : <div className={styles[comment.color || "black"]}><WikiContent
+      <div ref={renderedBody}>{comment.content_format === "html" ? <RichCommentBody html={comment.body} /> : <div className={styles[comment.color || "black"]}><WikiContent
         content={comment.body}
         pageType="manual"
         className={styles.body}
