@@ -1,17 +1,15 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseApiError } from "@/lib/api";
 import { useAuth } from "@/lib/use-auth";
+import CommentEditor from "./CommentEditor";
 import WikiContent from "./WikiContent";
 import styles from "./WikiComments.module.css";
 
 type CommentColor = "red" | "black" | "blue";
-function ColorPicker({ value, onChange }: { value: CommentColor; onChange: (value: CommentColor) => void }) {
-  return <label>Text color <select value={value} onChange={e => onChange(e.target.value as CommentColor)}><option value="black">Black</option><option value="red">Red</option><option value="blue">Blue</option></select></label>;
-}
-
 type WikiComment = {
+  content_format?: "markdown" | "html";
   color?: CommentColor;
   updated_at?: string;
   id: string;
@@ -49,10 +47,11 @@ function CommentItem({
   const replies = childrenByParent.get(comment.id) || [];
   const isCollapsed = collapsed.has(comment.id);
   const [reply, setReply] = useState("");
-  const [replyColor, setReplyColor] = useState<CommentColor>("black");
+  const replyColor: CommentColor = "black";
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(comment.body);
-  const [draftColor, setDraftColor] = useState<CommentColor>(comment.color || "black");
+  const draftColor: CommentColor = "black";
+  const renderedBody = useRef<HTMLDivElement>(null);
   const canEdit = !!userEmail && comment.author_email?.toLowerCase() === userEmail.toLowerCase();
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -66,28 +65,26 @@ function CommentItem({
       <span>{comment.created_at ? new Date(comment.created_at).toLocaleString() : ""}</span>
     </div>
     {!isCollapsed ? (
-      <div className={styles[comment.color || "black"]}><WikiContent
+      <div ref={renderedBody}>{comment.content_format === "html" ? <div className={styles.richBody} dangerouslySetInnerHTML={{ __html: comment.body }} /> : <div className={styles[comment.color || "black"]}><WikiContent
         content={comment.body}
         pageType="manual"
         className={styles.body}
-      /></div>
+      /></div>}</div>
     ) : null}
     {comment.updated_at && <span className={styles.summary}>Edited {new Date(comment.updated_at).toLocaleString()}</span>}
     {!isCollapsed && editing && <form className={styles.replyForm} onSubmit={async e => { e.preventDefault(); try { await editComment(comment.id, draft, draftColor); setEditing(false); } catch { /* keep draft */ } }}>
-      <textarea aria-label="Edit comment" className={styles.textarea} value={draft} maxLength={10000} onChange={e => setDraft(e.target.value)} style={{ color: draftColor }} />
-      <ColorPicker value={draftColor} onChange={setDraftColor} />
+      <CommentEditor label="Edit comment" value={draft} onChange={setDraft} disabled={busy} />
       <div className={styles.actions}><button disabled={busy || !draft.trim()}>Save changes</button><button type="button" disabled={busy} onClick={() => setEditing(false)}>Cancel</button></div>
     </form>}
     <div className={styles.actions}>
-      {!isCollapsed && canEdit && !editing && <button type="button" className={styles.smallButton} onClick={() => { setDraft(comment.body); setDraftColor(comment.color || "black"); setEditing(true); }}>Edit</button>}
+      {!isCollapsed && canEdit && !editing && <button type="button" className={styles.smallButton} onClick={() => { setDraft(comment.content_format === "html" ? comment.body : `<div style="color:${comment.color || "black"}">${renderedBody.current?.querySelector(".wiki-content")?.innerHTML || renderedBody.current?.firstElementChild?.firstElementChild?.innerHTML || ""}</div>`); setEditing(true); }}>Edit</button>}
       <button type="button" className={styles.smallButton} onClick={() => toggleCollapsed(comment.id)}>
         {isCollapsed ? `▶ Expand${replies.length ? ` (${replies.length})` : ""}` : "▼ Collapse"}
       </button>
       {!isCollapsed ? <button type="button" className={styles.smallButton} onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}>Reply</button> : null}
     </div>
     {!isCollapsed && replyingTo === comment.id ? <form className={styles.replyForm} onSubmit={submit}>
-      <textarea className={styles.textarea} value={reply} onChange={(event) => setReply(event.target.value)} placeholder={`Reply to ${comment.author_name || "comment"}…`} />
-      <ColorPicker value={replyColor} onChange={setReplyColor} />
+      <CommentEditor label="Reply" value={reply} onChange={setReply} disabled={busy} />
       <div className={styles.actions}>
         <button type="submit" disabled={busy || !reply.trim()}>Post reply</button>
         <button type="button" disabled={busy} onClick={() => setReplyingTo(null)}>Cancel</button>
@@ -103,7 +100,7 @@ export default function WikiComments({ pageId }: { pageId: string }) {
   const { user } = useAuth();
   const [comments, setComments] = useState<WikiComment[]>([]);
   const [body, setBody] = useState("");
-  const [color, setColor] = useState<CommentColor>("black");
+  const color: CommentColor = "black";
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
@@ -148,6 +145,7 @@ export default function WikiComments({ pageId }: { pageId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           body: commentBody,
+          content_format: "html",
           color: commentColor,
           parent_id: parentId || null,
           author_name: user?.name || user?.email || "Anonymous",
@@ -170,7 +168,7 @@ export default function WikiComments({ pageId }: { pageId: string }) {
   const editComment = async (id: string, text: string, selectedColor: CommentColor) => {
     setBusy(true); setError("");
     try {
-      const response = await fetch(`/api/wiki/pages/${pageId}/comments/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: text, color: selectedColor }) });
+      const response = await fetch(`/api/wiki/pages/${pageId}/comments/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: text, color: selectedColor, content_format: "html" }) });
       if (!response.ok) throw new Error(parseApiError(await response.text()));
       const data = await response.json(); setComments(data.comments);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not edit comment."); throw reason; }
@@ -206,8 +204,7 @@ export default function WikiComments({ pageId }: { pageId: string }) {
       </div> : null}
     </div>
     <form className={styles.composer} onSubmit={submitTopLevel}>
-      <textarea className={styles.textarea} value={body} onChange={(event) => setBody(event.target.value)} placeholder="Join the discussion…" />
-      <ColorPicker value={color} onChange={setColor} />
+      <CommentEditor label="New comment" value={body} onChange={setBody} disabled={busy} />
       <button type="submit" disabled={busy || !body.trim()}>Post comment</button>
     </form>
     {error ? <p className={styles.error}>{error}</p> : null}

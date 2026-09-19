@@ -31,6 +31,12 @@
 .children { list-style: none; margin: 0; padding-left: .65rem; }
 .empty { color: #64748b; }
 .error { color: #b91c1c; }
+.editor { border: 1px solid #cbd5e1; border-radius: 8px; background: white; overflow: hidden; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; border-bottom: 1px solid #cbd5e1; background: #f8fafc; }
+.toolbar button { background: white; color: #111; border: 1px solid #cbd5e1; padding: 5px 8px; font-size: .85rem; }
+.editable { min-height: 120px; padding: 12px; color: #000; overflow-wrap: anywhere; }
+.editable:focus { outline: 2px solid #2563eb; outline-offset: -2px; }
+.richBody { color: #000; overflow-wrap: anywhere; margin: .5rem 0; }
 .red .body, .red .body :is(p, li, blockquote, h1, h2, h3, h4, strong, em, a) { color: #b91c1c; }
 .blue .body, .blue .body :is(p, li, blockquote, h1, h2, h3, h4, strong, em, a) { color: #1d4ed8; }
 .black .body, .black .body :is(p, li, blockquote, h1, h2, h3, h4, strong, em, a) { color: #000; }
