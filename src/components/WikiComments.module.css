@@ -31,6 +31,9 @@
 .children { list-style: none; margin: 0; padding-left: .65rem; }
 .empty { color: #64748b; }
 .error { color: #b91c1c; }
+.red .body, .red .body :is(p, li, blockquote, h1, h2, h3, h4, strong, em, a) { color: #b91c1c; }
+.blue .body, .blue .body :is(p, li, blockquote, h1, h2, h3, h4, strong, em, a) { color: #1d4ed8; }
+.black .body, .black .body :is(p, li, blockquote, h1, h2, h3, h4, strong, em, a) { color: #000; }
 
 @media (max-width: 640px) {
   .header { align-items: stretch; flex-direction: column; }

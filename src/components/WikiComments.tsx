@@ -6,7 +6,14 @@ import { useAuth } from "@/lib/use-auth";
 import WikiContent from "./WikiContent";
 import styles from "./WikiComments.module.css";
 
+type CommentColor = "red" | "black" | "blue";
+function ColorPicker({ value, onChange }: { value: CommentColor; onChange: (value: CommentColor) => void }) {
+  return <label>Text color <select value={value} onChange={e => onChange(e.target.value as CommentColor)}><option value="black">Black</option><option value="red">Red</option><option value="blue">Blue</option></select></label>;
+}
+
 type WikiComment = {
+  color?: CommentColor;
+  updated_at?: string;
   id: string;
   parent_id?: string | null;
   body: string;
@@ -24,6 +31,8 @@ function CommentItem({
   replyingTo,
   setReplyingTo,
   submitReply,
+  editComment,
+  userEmail,
   busy,
 }: {
   comment: WikiComment;
@@ -32,17 +41,23 @@ function CommentItem({
   toggleCollapsed: (id: string) => void;
   replyingTo: string | null;
   setReplyingTo: (id: string | null) => void;
-  submitReply: (parentId: string, body: string) => Promise<void>;
+  submitReply: (parentId: string, body: string, color: CommentColor) => Promise<void>;
+  editComment: (id: string, body: string, color: CommentColor) => Promise<void>;
+  userEmail: string;
   busy: boolean;
 }) {
   const replies = childrenByParent.get(comment.id) || [];
   const isCollapsed = collapsed.has(comment.id);
   const [reply, setReply] = useState("");
+  const [replyColor, setReplyColor] = useState<CommentColor>("black");
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(comment.body);
+  const [draftColor, setDraftColor] = useState<CommentColor>(comment.color || "black");
+  const canEdit = !!userEmail && comment.author_email?.toLowerCase() === userEmail.toLowerCase();
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!reply.trim()) return;
-    await submitReply(comment.id, reply);
-    setReply("");
+    try { await submitReply(comment.id, reply, replyColor); setReply(""); } catch { /* keep draft */ }
   };
   return <li className={styles.comment}>
     <div className={styles.meta}>
@@ -51,13 +66,20 @@ function CommentItem({
       <span>{comment.created_at ? new Date(comment.created_at).toLocaleString() : ""}</span>
     </div>
     {!isCollapsed ? (
-      <WikiContent
+      <div className={styles[comment.color || "black"]}><WikiContent
         content={comment.body}
         pageType="manual"
         className={styles.body}
-      />
+      /></div>
     ) : null}
+    {comment.updated_at && <span className={styles.summary}>Edited {new Date(comment.updated_at).toLocaleString()}</span>}
+    {!isCollapsed && editing && <form className={styles.replyForm} onSubmit={async e => { e.preventDefault(); try { await editComment(comment.id, draft, draftColor); setEditing(false); } catch { /* keep draft */ } }}>
+      <textarea aria-label="Edit comment" className={styles.textarea} value={draft} maxLength={10000} onChange={e => setDraft(e.target.value)} style={{ color: draftColor }} />
+      <ColorPicker value={draftColor} onChange={setDraftColor} />
+      <div className={styles.actions}><button disabled={busy || !draft.trim()}>Save changes</button><button type="button" disabled={busy} onClick={() => setEditing(false)}>Cancel</button></div>
+    </form>}
     <div className={styles.actions}>
+      {!isCollapsed && canEdit && !editing && <button type="button" className={styles.smallButton} onClick={() => { setDraft(comment.body); setDraftColor(comment.color || "black"); setEditing(true); }}>Edit</button>}
       <button type="button" className={styles.smallButton} onClick={() => toggleCollapsed(comment.id)}>
         {isCollapsed ? `▶ Expand${replies.length ? ` (${replies.length})` : ""}` : "▼ Collapse"}
       </button>
@@ -65,13 +87,14 @@ function CommentItem({
     </div>
     {!isCollapsed && replyingTo === comment.id ? <form className={styles.replyForm} onSubmit={submit}>
       <textarea className={styles.textarea} value={reply} onChange={(event) => setReply(event.target.value)} placeholder={`Reply to ${comment.author_name || "comment"}…`} />
+      <ColorPicker value={replyColor} onChange={setReplyColor} />
       <div className={styles.actions}>
         <button type="submit" disabled={busy || !reply.trim()}>Post reply</button>
         <button type="button" disabled={busy} onClick={() => setReplyingTo(null)}>Cancel</button>
       </div>
     </form> : null}
     {!isCollapsed && replies.length ? <ul className={styles.children}>
-      {replies.map((replyComment) => <CommentItem key={replyComment.id} comment={replyComment} childrenByParent={childrenByParent} collapsed={collapsed} toggleCollapsed={toggleCollapsed} replyingTo={replyingTo} setReplyingTo={setReplyingTo} submitReply={submitReply} busy={busy} />)}
+      {replies.map((replyComment) => <CommentItem key={replyComment.id} comment={replyComment} childrenByParent={childrenByParent} collapsed={collapsed} toggleCollapsed={toggleCollapsed} replyingTo={replyingTo} setReplyingTo={setReplyingTo} submitReply={submitReply} editComment={editComment} userEmail={userEmail} busy={busy} />)}
     </ul> : null}
   </li>;
 }
@@ -80,6 +103,7 @@ export default function WikiComments({ pageId }: { pageId: string }) {
   const { user } = useAuth();
   const [comments, setComments] = useState<WikiComment[]>([]);
   const [body, setBody] = useState("");
+  const [color, setColor] = useState<CommentColor>("black");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
@@ -115,7 +139,7 @@ export default function WikiComments({ pageId }: { pageId: string }) {
     return map;
   }, [comments, sortOrder]);
 
-  const post = useCallback(async (commentBody: string, parentId?: string) => {
+  const post = useCallback(async (commentBody: string, parentId?: string, commentColor: CommentColor = "black") => {
     setBusy(true);
     setError("");
     try {
@@ -124,6 +148,7 @@ export default function WikiComments({ pageId }: { pageId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           body: commentBody,
+          color: commentColor,
           parent_id: parentId || null,
           author_name: user?.name || user?.email || "Anonymous",
           author_email: user?.email || "",
@@ -142,11 +167,20 @@ export default function WikiComments({ pageId }: { pageId: string }) {
     }
   }, [comments, pageId, user]);
 
+  const editComment = async (id: string, text: string, selectedColor: CommentColor) => {
+    setBusy(true); setError("");
+    try {
+      const response = await fetch(`/api/wiki/pages/${pageId}/comments/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: text, color: selectedColor }) });
+      if (!response.ok) throw new Error(parseApiError(await response.text()));
+      const data = await response.json(); setComments(data.comments);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not edit comment."); throw reason; }
+    finally { setBusy(false); }
+  };
   const submitTopLevel = async (event: FormEvent) => {
     event.preventDefault();
     if (!body.trim()) return;
     try {
-      await post(body);
+      await post(body, undefined, color);
       setBody("");
     } catch { /* error is shown in the section */ }
   };
@@ -173,11 +207,12 @@ export default function WikiComments({ pageId }: { pageId: string }) {
     </div>
     <form className={styles.composer} onSubmit={submitTopLevel}>
       <textarea className={styles.textarea} value={body} onChange={(event) => setBody(event.target.value)} placeholder="Join the discussion…" />
+      <ColorPicker value={color} onChange={setColor} />
       <button type="submit" disabled={busy || !body.trim()}>Post comment</button>
     </form>
     {error ? <p className={styles.error}>{error}</p> : null}
     {roots.length ? <ul className={styles.thread}>
-      {roots.map((comment) => <CommentItem key={comment.id} comment={comment} childrenByParent={childrenByParent} collapsed={collapsed} toggleCollapsed={(id) => setCollapsed((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; })} replyingTo={replyingTo} setReplyingTo={setReplyingTo} submitReply={(parentId, replyBody) => post(replyBody, parentId)} busy={busy} />)}
+      {roots.map((comment) => <CommentItem key={comment.id} comment={comment} childrenByParent={childrenByParent} collapsed={collapsed} toggleCollapsed={(id) => setCollapsed((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; })} replyingTo={replyingTo} setReplyingTo={setReplyingTo} submitReply={(parentId, replyBody, replyColor) => post(replyBody, parentId, replyColor)} editComment={editComment} userEmail={user?.email || ""} busy={busy} />)}
     </ul> : <p className={styles.empty}>No comments yet. Start the discussion.</p>}
   </section>;
 }
