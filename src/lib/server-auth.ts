@@ -28,7 +28,14 @@ export function safeNextPath(raw: string | null | undefined): string {
   return raw;
 }
 
+/** Canonical production origin; old Vercel NEXTAUTH_URL values must not override it. */
+export function configuredAuthOrigin(): string {
+  if (process.env.NODE_ENV === "production") return "https://openwiki.online";
+  return process.env.NEXTAUTH_URL?.trim().replace(/\/$/, "") || "http://localhost:3000";
+}
+
 export function authBaseUrl(request: NextRequest): string {
+  if (process.env.NODE_ENV === "production") return configuredAuthOrigin();
   const configured = process.env.NEXTAUTH_URL?.trim().replace(/\/$/, "");
   if (configured) return configured;
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
@@ -38,11 +45,7 @@ export function authBaseUrl(request: NextRequest): string {
 }
 
 export function googleRedirectUri(): string {
-  const base = process.env.NEXTAUTH_URL?.trim().replace(/\/$/, "");
-  if (base) {
-    return `${base}/api/auth/callback/google`;
-  }
-  return "http://localhost:3000/api/auth/callback/google";
+  return `${configuredAuthOrigin()}/api/auth/callback/google`;
 }
 
 export function authCookieSecure(): boolean {
@@ -103,9 +106,9 @@ export async function parseAuthToken(
   }
 }
 
-/** Absolute post-login URL (must match NEXTAUTH_URL domain for cookies). */
+/** Use the same origin as the OAuth callback so the session cookie is available. */
 export function postLoginRedirectUrl(next: string): string {
-  const base = process.env.NEXTAUTH_URL?.trim().replace(/\/$/, "") || "http://localhost:3000";
+  const base = configuredAuthOrigin();
   return `${base}${safeNextPath(next)}`;
 }
 
